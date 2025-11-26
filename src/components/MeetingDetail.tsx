@@ -56,11 +56,11 @@ export const MeetingDetail = ({
           <div>
             <div className="flex items-center gap-2">
               <h1 className="font-semibold text-lg text-foreground">
-                {meeting.title || 'Untitled Meeting'}
+                {meeting.title || 'Untitled Session'}
               </h1>
               {onRename && (
                 <RenameMeetingDialog
-                  currentTitle={meeting.title || 'Untitled Meeting'}
+                  currentTitle={meeting.title || 'Untitled Session'}
                   onRename={(newTitle) => onRename(meeting.id, newTitle)}
                 />
               )}
@@ -108,7 +108,7 @@ export const MeetingDetail = ({
       <div className="flex-1 overflow-hidden">
         <Tabs defaultValue="transcript" className="h-full flex flex-col">
           <TabsList className="mx-4 mt-4">
-            <TabsTrigger value="transcript">Transcript</TabsTrigger>
+            <TabsTrigger value="transcript">Transcription</TabsTrigger>
             <TabsTrigger value="article" disabled={!meeting.article}>
               Article {meeting.article && '✓'}
             </TabsTrigger>
@@ -122,7 +122,7 @@ export const MeetingDetail = ({
               />
               {!meeting.article && meeting.transcript.length > 50 && (
                 <Button variant="default" onClick={onGenerateArticle} className="gap-2 bg-accent text-accent-foreground hover:bg-accent/90">
-                  Generate Article from Transcript
+                  Generate Article from Transcription
                 </Button>
               )}
             </div>

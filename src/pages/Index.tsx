@@ -101,7 +101,7 @@ const Index = () => {
     } else {
       toast({
         title: 'Recording Too Short',
-        description: 'Please record a longer meeting to generate an article.',
+        description: 'Please record a longer session to generate an article.',
       });
     }
   }, [stopListening, transcript, toast]);
@@ -114,7 +114,7 @@ const Index = () => {
       setShowArticlePrompt(false);
       
       addMeeting({
-        title: title || 'Untitled Meeting',
+        title: title || 'Untitled Session',
         participants,
         date,
         duration,
@@ -124,7 +124,7 @@ const Index = () => {
       
       toast({
         title: 'Article Generated!',
-        description: 'Your meeting has been saved with the generated article.',
+        description: 'Your session has been saved with the generated article.',
       });
       
       setTitle('');
@@ -150,9 +150,9 @@ const Index = () => {
       if (generatedArticle) {
         setGeneratedArticle({ ...generatedArticle, generatedImage: imageUrl });
       }
-      toast({ title: 'Image Generated!', description: 'Your article graphic has been created.' });
+      toast({ title: 'Graphic Generated!', description: 'Your session graphic has been created.' });
     } catch (error) {
-      toast({ title: 'Image Generation Failed', description: 'Failed to generate image. Please try again.', variant: 'destructive' });
+      toast({ title: 'Graphic Generation Failed', description: 'Failed to generate graphic. Please try again.', variant: 'destructive' });
     } finally {
       setIsGeneratingImage(false);
     }
@@ -177,7 +177,7 @@ const Index = () => {
   const handleDeleteMeeting = useCallback((id: string) => {
     deleteMeeting(id);
     setSelectedMeeting(null);
-    toast({ title: 'Meeting Deleted', description: 'The meeting has been removed.' });
+    toast({ title: 'Session Deleted', description: 'The session has been removed.' });
   }, [deleteMeeting, toast]);
 
   const handleRenameMeeting = useCallback((id: string, newTitle: string) => {
@@ -185,7 +185,7 @@ const Index = () => {
     if (selectedMeeting?.id === id) {
       setSelectedMeeting({ ...selectedMeeting, title: newTitle });
     }
-    toast({ title: 'Meeting Renamed', description: 'The meeting title has been updated.' });
+    toast({ title: 'Session Renamed', description: 'The session title has been updated.' });
   }, [updateMeeting, selectedMeeting, toast]);
 
   if (!hasCompletedOnboarding) {
@@ -221,54 +221,65 @@ const Index = () => {
               isGeneratingImage={isGeneratingImage}
             />
           ) : (
-            <div className="h-full overflow-auto p-4 md:p-6 space-y-6">
+            <div className="h-full overflow-auto p-4 sm:p-6 md:p-8 space-y-6">
               {storageStatus.warning !== 'none' && <StorageWarning status={storageStatus} />}
 
-              <MeetingForm
-                title={title}
-                participants={participants}
-                date={date}
-                onTitleChange={setTitle}
-                onParticipantsChange={setParticipants}
-                onDateChange={setDate}
-                disabled={isActive}
-              />
-
-              <div className="bg-card rounded-xl shadow-card border border-border">
-                <RecordingControls
-                  recordingState={recordingState}
-                  duration={duration}
-                  isSupported={isSupported}
-                  onStart={handleStartRecording}
-                  onPause={handlePauseRecording}
-                  onResume={handleResumeRecording}
-                  onStop={handleStopRecording}
+              {/* Session Form - Full width container */}
+              <div className="w-full max-w-6xl mx-auto">
+                <MeetingForm
+                  title={title}
+                  participants={participants}
+                  date={date}
+                  onTitleChange={setTitle}
+                  onParticipantsChange={setParticipants}
+                  onDateChange={setDate}
+                  disabled={isActive}
                 />
               </div>
 
-              <div className="grid gap-6 lg:grid-cols-2">
-                <div className="min-h-[400px]">
-                  <TranscriptView
-                    transcript={transcript}
-                    interimTranscript={interimTranscript}
-                    isRecording={isRecording}
+              {/* Recording Controls - Full width container matching form */}
+              <div className="w-full max-w-6xl mx-auto">
+                <div className="bg-card rounded-xl shadow-card border border-border">
+                  <RecordingControls
+                    recordingState={recordingState}
+                    duration={duration}
+                    isSupported={isSupported}
+                    onStart={handleStartRecording}
+                    onPause={handlePauseRecording}
+                    onResume={handleResumeRecording}
+                    onStop={handleStopRecording}
                   />
                 </div>
+              </div>
 
-                {generatedArticle && (
+              {/* Transcript and Article - Responsive grid with full-width transcript on desktop */}
+              <div className="w-full max-w-6xl mx-auto">
+                <div className={`grid gap-6 ${generatedArticle ? 'lg:grid-cols-2' : 'grid-cols-1'}`}>
+                  {/* Live Transcript - Full width when no article */}
                   <div className="min-h-[400px]">
-                    <ArticleView
-                      article={generatedArticle}
-                      onGenerateImage={handleGenerateImage}
-                      isGeneratingImage={isGeneratingImage}
+                    <TranscriptView
+                      transcript={transcript}
+                      interimTranscript={interimTranscript}
+                      isRecording={isRecording}
                     />
                   </div>
-                )}
+
+                  {/* Generated Article */}
+                  {generatedArticle && (
+                    <div className="min-h-[400px]">
+                      <ArticleView
+                        article={generatedArticle}
+                        onGenerateImage={handleGenerateImage}
+                        isGeneratingImage={isGeneratingImage}
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Q&A Button */}
               {(transcript.length > 0 || pendingTranscript) && (
-                <div className="flex justify-center">
+                <div className="w-full max-w-6xl mx-auto flex justify-center">
                   <Button
                     onClick={() => setShowQA(true)}
                     variant="outline"

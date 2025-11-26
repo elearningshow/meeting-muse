@@ -50,7 +50,7 @@ export const Sidebar = ({
       >
         <div className="flex flex-col h-full">
           <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
-            <h2 className="font-semibold text-sidebar-foreground">Meetings</h2>
+            <h2 className="font-semibold text-sidebar-foreground">Sessions</h2>
             <Button variant="ghost" size="icon" onClick={onClose} className="lg:hidden">
               <X className="h-5 w-5" />
             </Button>
@@ -61,7 +61,7 @@ export const Sidebar = ({
               onClick={onNewMeeting}
               className="w-full gradient-hero text-primary-foreground hover:opacity-90"
             >
-              + New Meeting
+              + New Session
             </Button>
           </div>
 
@@ -70,7 +70,7 @@ export const Sidebar = ({
               {meetings.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
                   <Clock className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                  <p className="text-sm">No meetings yet</p>
+                  <p className="text-sm">No sessions yet</p>
                 </div>
               ) : (
                 meetings.map((meeting) => (
@@ -86,7 +86,7 @@ export const Sidebar = ({
                     <div className="flex items-start justify-between">
                       <div className="flex-1 min-w-0">
                         <h3 className="font-medium text-sm text-sidebar-foreground truncate">
-                          {meeting.title || 'Untitled Meeting'}
+                          {meeting.title || 'Untitled Session'}
                         </h3>
                         <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
                           <span>{formatDate(meeting.createdAt)}</span>

@@ -11,8 +11,8 @@ interface OnboardingProps {
 const steps = [
   {
     icon: Mic,
-    title: 'Record Your Meetings',
-    description: 'Click "Start Meeting" to begin recording. Press again to pause, and use Stop when finished. Recording continues in the background until stopped.',
+    title: 'Record Your Sessions',
+    description: 'Click "Start Session" to begin recording. Press again to pause, and use Stop when finished. Recording continues in the background until stopped.',
     color: 'primary',
   },
   {
@@ -24,13 +24,13 @@ const steps = [
   {
     icon: Sparkles,
     title: 'AI Article Generation',
-    description: 'Transform your meeting transcript into a polished LinkedIn-style article with hashtags. Customize the style, tone, and length to match your needs.',
+    description: 'Transform your session transcript into a polished LinkedIn-style article with hashtags. Customize the style, tone, and length to match your needs.',
     color: 'accent',
   },
   {
     icon: MessageSquare,
     title: 'Ask Questions',
-    description: 'Use the Q&A feature to ask questions about your meeting content and get AI-powered answers instantly.',
+    description: 'Use the Q&A feature to ask questions about your session content and get AI-powered answers instantly.',
     color: 'accent',
   },
   {
@@ -62,7 +62,7 @@ export const Onboarding = ({ onComplete }: OnboardingProps) => {
   const Icon = step.icon;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-6 sm:p-4 bg-background">
       <div className="w-full max-w-md">
         {/* Progress Dots */}
         <div className="flex items-center justify-center gap-2 mb-8">
@@ -97,7 +97,7 @@ export const Onboarding = ({ onComplete }: OnboardingProps) => {
           )}
 
           <h2 className="text-2xl font-bold text-foreground mb-4">{step.title}</h2>
-          <p className="text-muted-foreground leading-relaxed mb-8 px-4">{step.description}</p>
+          <p className="text-muted-foreground leading-relaxed mb-8 px-6 sm:px-4">{step.description}</p>
         </div>
 
         {/* Navigation */}

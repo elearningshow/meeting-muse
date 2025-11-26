@@ -48,7 +48,7 @@ export const RecordingControls = ({
   }
 
   return (
-    <div className="flex flex-col items-center gap-6 py-8 px-4 sm:px-6">
+    <div className="flex flex-col items-center gap-6 py-8 px-6 sm:px-8">
       {/* Logo Icon */}
       <div className={cn(
         "w-20 h-20 rounded-2xl overflow-hidden shadow-elevated transition-all duration-300",
@@ -87,7 +87,7 @@ export const RecordingControls = ({
             className="gap-3 gradient-hero text-primary-foreground hover:opacity-90"
           >
             <Play className="h-5 w-5" />
-            Start Meeting
+            Start Session
           </Button>
         ) : (
           <>
@@ -115,7 +115,7 @@ export const RecordingControls = ({
               className="gap-3"
             >
               <Square className="h-4 w-4" />
-              Stop Meeting
+              Stop Session
             </Button>
           </>
         )}
@@ -123,14 +123,14 @@ export const RecordingControls = ({
 
       {/* Status Text */}
       <p className={cn(
-        "text-sm text-center px-6 transition-all duration-300 max-w-md",
+        "text-sm text-center px-6 sm:px-8 transition-all duration-300 max-w-md",
         isRecording ? "text-accent" : isPaused ? "text-primary" : "text-muted-foreground"
       )}>
         {isRecording 
           ? "Recording in progress... Recording continues in background until stopped." 
           : isPaused 
           ? "Recording paused. Press Resume to continue or Stop to finish."
-          : "Click 'Start Meeting' to begin recording and transcription"}
+          : "Click 'Start Session' to begin recording and transcription"}
       </p>
     </div>
   );

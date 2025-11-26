@@ -33,13 +33,13 @@ export const RenameMeetingDialog = ({ currentTitle, onRename }: RenameMeetingDia
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Rename Meeting</DialogTitle>
+          <DialogTitle>Rename Session</DialogTitle>
         </DialogHeader>
         <div className="py-4">
           <Input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="Enter meeting title"
+            placeholder="Enter session title"
             onKeyDown={(e) => {
               if (e.key === 'Enter') handleSave();
             }}
