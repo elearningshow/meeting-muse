@@ -9,65 +9,48 @@ import { ArticleView } from '@/components/ArticleView';
 import { MeetingDetail } from '@/components/MeetingDetail';
 import { Onboarding } from '@/components/Onboarding';
 import { StorageWarning } from '@/components/StorageWarning';
+import { SessionQA } from '@/components/SessionQA';
 import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
 import { useStorageStatus } from '@/hooks/useStorageStatus';
 import { useMeetings } from '@/hooks/useMeetings';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
-import { Meeting, ArticlePrompt, GeneratedArticle } from '@/types/meeting';
+import { Meeting, ArticlePrompt, GeneratedArticle, RecordingState } from '@/types/meeting';
 import { generateArticle, generateImage } from '@/services/aiService';
 import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
+import { MessageSquare } from 'lucide-react';
 
 const Index = () => {
   const { toast } = useToast();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [hasCompletedOnboarding, setHasCompletedOnboarding] = useLocalStorage('onboarding_complete', false);
   
-  // Meeting state
   const [title, setTitle] = useState('');
   const [participants, setParticipants] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [duration, setDuration] = useState(0);
-  const [isRecording, setIsRecording] = useState(false);
+  const [recordingState, setRecordingState] = useState<RecordingState>('idle');
   const [selectedMeeting, setSelectedMeeting] = useState<Meeting | null>(null);
+  const [showQA, setShowQA] = useState(false);
   
-  // Article generation state
   const [showArticlePrompt, setShowArticlePrompt] = useState(false);
-  const [articlePrompt, setArticlePrompt] = useState<ArticlePrompt>({
-    style: 'professional',
-    tone: 'informative',
-    length: 'medium',
-    audience: '',
-  });
+  const [articlePrompt, setArticlePrompt] = useState<ArticlePrompt>({ style: 'professional', tone: 'informative', length: 'medium', audience: '' });
   const [generatedArticle, setGeneratedArticle] = useState<GeneratedArticle | null>(null);
   const [isGeneratingArticle, setIsGeneratingArticle] = useState(false);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [pendingTranscript, setPendingTranscript] = useState('');
 
-  // Hooks
-  const { 
-    transcript, 
-    interimTranscript, 
-    isListening, 
-    isSupported, 
-    startListening, 
-    stopListening, 
-    resetTranscript,
-    error: speechError 
-  } = useSpeechRecognition();
-  
+  const { transcript, interimTranscript, isListening, isSupported, startListening, stopListening, resetTranscript, error: speechError } = useSpeechRecognition();
   const storageStatus = useStorageStatus();
-  const { meetings, addMeeting, updateMeeting, deleteMeeting, addArticleToMeeting } = useMeetings();
+  const { meetings, addMeeting, updateMeeting, deleteMeeting } = useMeetings();
 
-  // Timer for recording duration
   useEffect(() => {
     let interval: NodeJS.Timeout;
-    if (isRecording) {
-      interval = setInterval(() => {
-        setDuration(prev => prev + 1);
-      }, 1000);
+    if (recordingState === 'recording') {
+      interval = setInterval(() => setDuration(prev => prev + 1), 1000);
     }
     return () => clearInterval(interval);
-  }, [isRecording]);
+  }, [recordingState]);
 
   // Handle speech errors
   useEffect(() => {

@@ -14,6 +14,7 @@ export interface GeneratedArticle {
   summary: string;
   sections: ArticleSection[];
   takeaways: string[];
+  hashtags?: string[];
   generatedImage?: string;
 }
 
@@ -23,8 +24,8 @@ export interface ArticleSection {
 }
 
 export interface ArticlePrompt {
-  style: 'professional' | 'casual' | 'academic' | 'creative';
-  tone: 'formal' | 'friendly' | 'informative' | 'persuasive';
+  style: 'professional' | 'casual' | 'academic' | 'conversational';
+  tone: 'informative' | 'persuasive' | 'neutral' | 'engaging';
   length: 'short' | 'medium' | 'long';
   audience: string;
 }
@@ -35,3 +36,21 @@ export interface StorageStatus {
   free: number;
   warning: 'none' | 'low' | 'critical';
 }
+
+export interface LLMModel {
+  id: string;
+  name: string;
+  description: string;
+  size: string;
+  downloaded: boolean;
+  isDefault?: boolean;
+}
+
+export interface ChatMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: string;
+}
+
+export type RecordingState = 'idle' | 'recording' | 'paused';

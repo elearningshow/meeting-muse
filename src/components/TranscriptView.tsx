@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
+import logoImg from '@/assets/logo.jpg';
 
 interface TranscriptViewProps {
   transcript: string;
@@ -33,8 +34,8 @@ export const TranscriptView = ({
           <FileText className="h-5 w-5 text-primary" />
           <h3 className="font-semibold text-foreground">Live Transcript</h3>
           {isRecording && (
-            <span className="flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-destructive/10 text-destructive rounded-full">
-              <span className="w-1.5 h-1.5 bg-destructive rounded-full animate-pulse" />
+            <span className="flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-accent/10 text-accent rounded-full">
+              <span className="w-1.5 h-1.5 bg-accent rounded-full animate-pulse" />
               Live
             </span>
           )}
@@ -51,7 +52,7 @@ export const TranscriptView = ({
             ) : (
               <Copy className="h-4 w-4" />
             )}
-            {copied ? 'Copied!' : 'Copy'}
+            <span className="hidden sm:inline">{copied ? 'Copied!' : 'Copy'}</span>
           </Button>
         )}
       </div>
@@ -70,15 +71,12 @@ export const TranscriptView = ({
             </p>
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center h-48 text-center">
+          <div className="flex flex-col items-center justify-center h-48 text-center px-4">
             <div className={cn(
-              "w-16 h-16 rounded-full flex items-center justify-center mb-4",
-              isRecording ? "bg-destructive/10" : "bg-secondary"
+              "w-16 h-16 rounded-2xl flex items-center justify-center mb-4 overflow-hidden",
+              isRecording ? "animate-recording shadow-glow" : ""
             )}>
-              <FileText className={cn(
-                "h-8 w-8",
-                isRecording ? "text-destructive animate-pulse" : "text-muted-foreground"
-              )} />
+              <img src={logoImg} alt="Record & Post" className="w-full h-full object-cover" />
             </div>
             <p className="text-muted-foreground">
               {isRecording 
