@@ -44,6 +44,9 @@ const Index = () => {
   const storageStatus = useStorageStatus();
   const { meetings, addMeeting, updateMeeting, deleteMeeting } = useMeetings();
 
+  const isRecording = recordingState === 'recording';
+  const isActive = recordingState !== 'idle';
+
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (recordingState === 'recording') {
@@ -52,7 +55,6 @@ const Index = () => {
     return () => clearInterval(interval);
   }, [recordingState]);
 
-  // Handle speech errors
   useEffect(() => {
     if (speechError && speechError !== 'no-speech') {
       toast({
@@ -72,16 +74,25 @@ const Index = () => {
       });
       return;
     }
-    
     resetTranscript();
     setDuration(0);
-    setIsRecording(true);
+    setRecordingState('recording');
     setGeneratedArticle(null);
     startListening();
   }, [storageStatus.warning, resetTranscript, startListening, toast]);
 
+  const handlePauseRecording = useCallback(() => {
+    setRecordingState('paused');
+    stopListening();
+  }, [stopListening]);
+
+  const handleResumeRecording = useCallback(() => {
+    setRecordingState('recording');
+    startListening();
+  }, [startListening]);
+
   const handleStopRecording = useCallback(() => {
-    setIsRecording(false);
+    setRecordingState('idle');
     stopListening();
     
     if (transcript.length > 10) {
@@ -102,8 +113,7 @@ const Index = () => {
       setGeneratedArticle(article);
       setShowArticlePrompt(false);
       
-      // Save meeting with article
-      const newMeeting = addMeeting({
+      addMeeting({
         title: title || 'Untitled Meeting',
         participants,
         date,
@@ -117,13 +127,11 @@ const Index = () => {
         description: 'Your meeting has been saved with the generated article.',
       });
       
-      // Reset form
       setTitle('');
       setParticipants('');
       setDate(new Date().toISOString().split('T')[0]);
       setPendingTranscript('');
       resetTranscript();
-      
     } catch (error) {
       toast({
         title: 'Generation Failed',
@@ -140,21 +148,11 @@ const Index = () => {
     try {
       const imageUrl = await generateImage(generatedArticle?.title || '');
       if (generatedArticle) {
-        setGeneratedArticle({
-          ...generatedArticle,
-          generatedImage: imageUrl,
-        });
+        setGeneratedArticle({ ...generatedArticle, generatedImage: imageUrl });
       }
-      toast({
-        title: 'Image Generated!',
-        description: 'Your article graphic has been created.',
-      });
+      toast({ title: 'Image Generated!', description: 'Your article graphic has been created.' });
     } catch (error) {
-      toast({
-        title: 'Image Generation Failed',
-        description: 'Failed to generate image. Please try again.',
-        variant: 'destructive',
-      });
+      toast({ title: 'Image Generation Failed', description: 'Failed to generate image. Please try again.', variant: 'destructive' });
     } finally {
       setIsGeneratingImage(false);
     }
@@ -179,13 +177,17 @@ const Index = () => {
   const handleDeleteMeeting = useCallback((id: string) => {
     deleteMeeting(id);
     setSelectedMeeting(null);
-    toast({
-      title: 'Meeting Deleted',
-      description: 'The meeting has been removed.',
-    });
+    toast({ title: 'Meeting Deleted', description: 'The meeting has been removed.' });
   }, [deleteMeeting, toast]);
 
-  // Show onboarding for first-time users
+  const handleRenameMeeting = useCallback((id: string, newTitle: string) => {
+    updateMeeting(id, { title: newTitle });
+    if (selectedMeeting?.id === id) {
+      setSelectedMeeting({ ...selectedMeeting, title: newTitle });
+    }
+    toast({ title: 'Meeting Renamed', description: 'The meeting title has been updated.' });
+  }, [updateMeeting, selectedMeeting, toast]);
+
   if (!hasCompletedOnboarding) {
     return <Onboarding onComplete={() => setHasCompletedOnboarding(true)} />;
   }
@@ -210,6 +212,7 @@ const Index = () => {
               meeting={selectedMeeting}
               onBack={() => setSelectedMeeting(null)}
               onDelete={handleDeleteMeeting}
+              onRename={handleRenameMeeting}
               onGenerateArticle={() => {
                 setPendingTranscript(selectedMeeting.transcript);
                 setShowArticlePrompt(true);
@@ -219,12 +222,8 @@ const Index = () => {
             />
           ) : (
             <div className="h-full overflow-auto p-4 md:p-6 space-y-6">
-              {/* Storage Warning */}
-              {storageStatus.warning !== 'none' && (
-                <StorageWarning status={storageStatus} />
-              )}
+              {storageStatus.warning !== 'none' && <StorageWarning status={storageStatus} />}
 
-              {/* Meeting Form */}
               <MeetingForm
                 title={title}
                 participants={participants}
@@ -232,23 +231,22 @@ const Index = () => {
                 onTitleChange={setTitle}
                 onParticipantsChange={setParticipants}
                 onDateChange={setDate}
-                disabled={isRecording}
+                disabled={isActive}
               />
 
-              {/* Recording Controls */}
               <div className="bg-card rounded-xl shadow-card border border-border">
                 <RecordingControls
-                  isRecording={isRecording}
+                  recordingState={recordingState}
                   duration={duration}
                   isSupported={isSupported}
                   onStart={handleStartRecording}
+                  onPause={handlePauseRecording}
+                  onResume={handleResumeRecording}
                   onStop={handleStopRecording}
                 />
               </div>
 
-              {/* Content Area */}
               <div className="grid gap-6 lg:grid-cols-2">
-                {/* Transcript */}
                 <div className="min-h-[400px]">
                   <TranscriptView
                     transcript={transcript}
@@ -257,7 +255,6 @@ const Index = () => {
                   />
                 </div>
 
-                {/* Generated Article */}
                 {generatedArticle && (
                   <div className="min-h-[400px]">
                     <ArticleView
@@ -268,12 +265,25 @@ const Index = () => {
                   </div>
                 )}
               </div>
+
+              {/* Q&A Button */}
+              {(transcript.length > 0 || pendingTranscript) && (
+                <div className="flex justify-center">
+                  <Button
+                    onClick={() => setShowQA(true)}
+                    variant="outline"
+                    className="gap-2"
+                  >
+                    <MessageSquare className="h-4 w-4" />
+                    Ask Questions About Session
+                  </Button>
+                </div>
+              )}
             </div>
           )}
         </main>
       </div>
 
-      {/* Article Prompt Modal */}
       {showArticlePrompt && (
         <ArticlePromptForm
           prompt={articlePrompt}
@@ -283,6 +293,12 @@ const Index = () => {
           isGenerating={isGeneratingArticle}
         />
       )}
+
+      <SessionQA
+        transcript={pendingTranscript || transcript}
+        isOpen={showQA}
+        onClose={() => setShowQA(false)}
+      />
     </div>
   );
 };

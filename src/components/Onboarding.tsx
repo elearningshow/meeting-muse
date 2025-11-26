@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Mic, FileText, Sparkles, Image, ChevronRight, ChevronLeft } from 'lucide-react';
+import { Mic, FileText, Sparkles, Image, ChevronRight, ChevronLeft, MessageSquare } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import logoImg from '@/assets/logo.jpg';
 
 interface OnboardingProps {
   onComplete: () => void;
@@ -11,7 +12,7 @@ const steps = [
   {
     icon: Mic,
     title: 'Record Your Meetings',
-    description: 'Simply click "Start Meeting" to begin recording. Your voice will be transcribed in real-time as you speak.',
+    description: 'Click "Start Meeting" to begin recording. Press again to pause, and use Stop when finished. Recording continues in the background until stopped.',
     color: 'primary',
   },
   {
@@ -23,7 +24,13 @@ const steps = [
   {
     icon: Sparkles,
     title: 'AI Article Generation',
-    description: 'Transform your meeting transcript into a polished article. Customize the style, tone, and length to match your needs.',
+    description: 'Transform your meeting transcript into a polished LinkedIn-style article with hashtags. Customize the style, tone, and length to match your needs.',
+    color: 'accent',
+  },
+  {
+    icon: MessageSquare,
+    title: 'Ask Questions',
+    description: 'Use the Q&A feature to ask questions about your meeting content and get AI-powered answers instantly.',
     color: 'accent',
   },
   {
@@ -76,15 +83,21 @@ export const Onboarding = ({ onComplete }: OnboardingProps) => {
 
         {/* Content */}
         <div className="text-center animate-fade-in" key={currentStep}>
-          <div className={cn(
-            "w-24 h-24 rounded-3xl mx-auto mb-8 flex items-center justify-center",
-            step.color === 'accent' ? 'gradient-accent' : 'gradient-primary'
-          )}>
-            <Icon className="h-12 w-12 text-primary-foreground" />
-          </div>
+          {currentStep === 0 ? (
+            <div className="w-24 h-24 rounded-3xl mx-auto mb-8 overflow-hidden shadow-elevated">
+              <img src={logoImg} alt="Record & Post" className="w-full h-full object-cover" />
+            </div>
+          ) : (
+            <div className={cn(
+              "w-24 h-24 rounded-3xl mx-auto mb-8 flex items-center justify-center",
+              step.color === 'accent' ? 'gradient-accent' : 'gradient-primary'
+            )}>
+              <Icon className="h-12 w-12 text-primary-foreground" />
+            </div>
+          )}
 
           <h2 className="text-2xl font-bold text-foreground mb-4">{step.title}</h2>
-          <p className="text-muted-foreground leading-relaxed mb-8">{step.description}</p>
+          <p className="text-muted-foreground leading-relaxed mb-8 px-4">{step.description}</p>
         </div>
 
         {/* Navigation */}

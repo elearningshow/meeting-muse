@@ -1,15 +1,18 @@
-import { ArrowLeft, Calendar, Users, Clock, Trash2 } from 'lucide-react';
+import { ArrowLeft, Calendar, Users, Clock, Trash2, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Meeting } from '@/types/meeting';
 import { ArticleView } from './ArticleView';
 import { TranscriptView } from './TranscriptView';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { RenameMeetingDialog } from './RenameMeetingDialog';
+import { SessionQA } from './SessionQA';
+import { useState } from 'react';
 
 interface MeetingDetailProps {
   meeting: Meeting;
   onBack: () => void;
   onDelete: (id: string) => void;
+  onRename?: (id: string, newTitle: string) => void;
   onGenerateArticle: () => void;
   onGenerateImage: () => void;
   isGeneratingImage?: boolean;
@@ -19,10 +22,13 @@ export const MeetingDetail = ({
   meeting,
   onBack,
   onDelete,
+  onRename,
   onGenerateArticle,
   onGenerateImage,
   isGeneratingImage,
 }: MeetingDetailProps) => {
+  const [showQA, setShowQA] = useState(false);
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { 
@@ -48,10 +54,18 @@ export const MeetingDetail = ({
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h1 className="font-semibold text-lg text-foreground">
-              {meeting.title || 'Untitled Meeting'}
-            </h1>
-            <div className="flex items-center gap-3 text-sm text-muted-foreground">
+            <div className="flex items-center gap-2">
+              <h1 className="font-semibold text-lg text-foreground">
+                {meeting.title || 'Untitled Meeting'}
+              </h1>
+              {onRename && (
+                <RenameMeetingDialog
+                  currentTitle={meeting.title || 'Untitled Meeting'}
+                  onRename={(newTitle) => onRename(meeting.id, newTitle)}
+                />
+              )}
+            </div>
+            <div className="flex items-center gap-3 text-sm text-muted-foreground flex-wrap">
               <span className="flex items-center gap-1">
                 <Calendar className="h-3.5 w-3.5" />
                 {formatDate(meeting.createdAt)}
@@ -69,14 +83,25 @@ export const MeetingDetail = ({
             </div>
           </div>
         </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => onDelete(meeting.id)}
-          className="text-destructive hover:text-destructive hover:bg-destructive/10"
-        >
-          <Trash2 className="h-5 w-5" />
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowQA(true)}
+            className="gap-2"
+          >
+            <MessageSquare className="h-4 w-4" />
+            <span className="hidden sm:inline">Ask Q&A</span>
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => onDelete(meeting.id)}
+            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+          >
+            <Trash2 className="h-5 w-5" />
+          </Button>
+        </div>
       </div>
 
       {/* Content */}
@@ -114,6 +139,13 @@ export const MeetingDetail = ({
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Q&A Modal */}
+      <SessionQA
+        transcript={meeting.transcript}
+        isOpen={showQA}
+        onClose={() => setShowQA(false)}
+      />
     </div>
   );
 };
