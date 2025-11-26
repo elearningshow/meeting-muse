@@ -1,9 +1,8 @@
-import { Copy, Check, Download, Image, Sparkles, ChevronDown, ChevronUp, Hash } from 'lucide-react';
+import { Copy, Check, Download, Image, Sparkles, Hash } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { GeneratedArticle } from '@/types/meeting';
 import { useState } from 'react';
-import { cn } from '@/lib/utils';
 
 interface ArticleViewProps {
   article: GeneratedArticle;
@@ -13,23 +12,51 @@ interface ArticleViewProps {
 
 export const ArticleView = ({ article, onGenerateImage, isGeneratingImage }: ArticleViewProps) => {
   const [copied, setCopied] = useState(false);
-  const [expandedSections, setExpandedSections] = useState<Set<number>>(new Set([0]));
+
+  // Build the full article text for copy/export
+  const buildArticleText = () => {
+    const lines: string[] = [];
+    
+    // Title
+    lines.push(article.title);
+    lines.push('');
+    
+    // Session Overview
+    lines.push('Session Overview');
+    lines.push(article.summary);
+    lines.push('');
+    
+    // Sub-topics
+    article.sections.forEach(section => {
+      lines.push(section.heading);
+      lines.push(section.content);
+      lines.push('');
+    });
+    
+    // Final Takeaways
+    lines.push('Final Takeaways');
+    article.takeaways.forEach((takeaway, i) => {
+      lines.push(`${i + 1}. ${takeaway}`);
+    });
+    lines.push('');
+    
+    // Hashtags
+    if (article.hashtags && article.hashtags.length > 0) {
+      lines.push(article.hashtags.map(h => `#${h}`).join(', '));
+    }
+    
+    return lines.join('\n');
+  };
 
   const handleCopy = async () => {
-    const hashtagText = article.hashtags?.length 
-      ? `\n\n${article.hashtags.map(h => `#${h}`).join(', ')}`
-      : '';
-    const text = `${article.title}\n\n${article.summary}\n\n${article.sections.map(s => `${s.heading}\n${s.content}`).join('\n\n')}\n\nKey Takeaways:\n${article.takeaways.map(t => `• ${t}`).join('\n')}${hashtagText}`;
+    const text = buildArticleText();
     await navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
   const handleExport = () => {
-    const hashtagText = article.hashtags?.length 
-      ? `\n\n${article.hashtags.map(h => `#${h}`).join(', ')}`
-      : '';
-    const text = `${article.title}\n\n${article.summary}\n\n${article.sections.map(s => `${s.heading}\n${s.content}`).join('\n\n')}\n\nKey Takeaways:\n${article.takeaways.map(t => `• ${t}`).join('\n')}${hashtagText}`;
+    const text = buildArticleText();
     const blob = new Blob([text], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -37,16 +64,6 @@ export const ArticleView = ({ article, onGenerateImage, isGeneratingImage }: Art
     a.download = `${article.title.replace(/\s+/g, '_').substring(0, 50)}.txt`;
     a.click();
     URL.revokeObjectURL(url);
-  };
-
-  const toggleSection = (index: number) => {
-    const newExpanded = new Set(expandedSections);
-    if (newExpanded.has(index)) {
-      newExpanded.delete(index);
-    } else {
-      newExpanded.add(index);
-    }
-    setExpandedSections(newExpanded);
   };
 
   return (
@@ -69,102 +86,21 @@ export const ArticleView = ({ article, onGenerateImage, isGeneratingImage }: Art
         </div>
       </div>
 
-      {/* Content */}
+      {/* Unified Article Content - Single scrollable window */}
       <ScrollArea className="flex-1">
         <div className="p-4 sm:p-6 space-y-6">
-          {/* Title */}
-          <h1 className="text-xl sm:text-2xl font-bold text-foreground leading-tight">{article.title}</h1>
+          {/* Session Title */}
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground leading-tight">
+            {article.title}
+          </h1>
 
-          {/* Summary */}
-          <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
-            <p className="text-sm font-medium text-primary mb-2">Summary</p>
-            <p className="text-foreground leading-relaxed">{article.summary}</p>
-          </div>
-
-          {/* Sections - LinkedIn Style */}
-          <div className="space-y-3">
-            {article.sections.map((section, index) => (
-              <div key={index} className="border border-border rounded-lg overflow-hidden">
-                <button
-                  onClick={() => toggleSection(index)}
-                  className="w-full flex items-center justify-between p-4 bg-secondary/50 hover:bg-secondary transition-colors"
-                >
-                  <h2 className="font-semibold text-foreground text-left">{section.heading}</h2>
-                  {expandedSections.has(index) ? (
-                    <ChevronUp className="h-5 w-5 text-muted-foreground flex-shrink-0" />
-                  ) : (
-                    <ChevronDown className="h-5 w-5 text-muted-foreground flex-shrink-0" />
-                  )}
-                </button>
-                {expandedSections.has(index) && (
-                  <div className="p-4 animate-fade-in">
-                    <div className="prose prose-sm max-w-none text-foreground leading-relaxed">
-                      {section.content.split('\n\n').map((paragraph, pIndex) => {
-                        if (paragraph.startsWith('> ')) {
-                          // Blockquote styling
-                          return (
-                            <blockquote 
-                              key={pIndex} 
-                              className="border-l-4 border-primary pl-4 my-4 italic text-muted-foreground"
-                            >
-                              {paragraph.slice(2)}
-                            </blockquote>
-                          );
-                        }
-                        return <p key={pIndex} className="mb-4">{paragraph}</p>;
-                      })}
-                    </div>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-
-          {/* Takeaways */}
-          <div className="p-4 bg-accent/5 rounded-lg border border-accent/20">
-            <p className="text-sm font-medium text-accent mb-3">Key Takeaways</p>
-            <ul className="space-y-2">
-              {article.takeaways.map((takeaway, index) => (
-                <li key={index} className="flex items-start gap-2">
-                  <span className="w-5 h-5 rounded-full bg-accent/20 text-accent text-xs flex items-center justify-center flex-shrink-0 mt-0.5">
-                    {index + 1}
-                  </span>
-                  <span className="text-foreground">{takeaway}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Hashtags */}
-          {article.hashtags && article.hashtags.length > 0 && (
-            <div className="p-4 bg-secondary/50 rounded-lg border border-border">
-              <div className="flex items-center gap-2 mb-3">
-                <Hash className="h-4 w-4 text-primary" />
-                <p className="text-sm font-medium text-foreground">Suggested Hashtags</p>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {article.hashtags.map((hashtag, index) => (
-                  <span 
-                    key={index}
-                    className="px-3 py-1 bg-primary/10 text-primary text-sm rounded-full hover:bg-primary/20 transition-colors cursor-pointer"
-                    onClick={() => navigator.clipboard.writeText(`#${hashtag}`)}
-                  >
-                    #{hashtag}
-                  </span>
-                ))}
-              </div>
-              <p className="text-xs text-muted-foreground mt-2">Click any hashtag to copy</p>
-            </div>
-          )}
-
-          {/* Generated Image */}
+          {/* Generated Graphic - Positioned at top for visual appeal */}
           {article.generatedImage ? (
-            <div className="space-y-3">
-              <p className="text-sm font-medium text-foreground">Generated Graphic</p>
+            <div className="rounded-lg overflow-hidden shadow-card">
               <img
                 src={article.generatedImage}
-                alt="Generated article graphic"
-                className="w-full rounded-lg shadow-card"
+                alt="Session graphic"
+                className="w-full h-auto"
               />
             </div>
           ) : (
@@ -177,15 +113,85 @@ export const ArticleView = ({ article, onGenerateImage, isGeneratingImage }: Art
               {isGeneratingImage ? (
                 <>
                   <div className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-                  Generating Image...
+                  Generating Graphic...
                 </>
               ) : (
                 <>
                   <Image className="h-4 w-4" />
-                  Generate Article Graphic
+                  Generate Session Graphic
                 </>
               )}
             </Button>
+          )}
+
+          {/* Session Overview */}
+          <div className="space-y-2">
+            <h2 className="text-lg font-semibold text-primary">Session Overview</h2>
+            <p className="text-foreground leading-relaxed">{article.summary}</p>
+          </div>
+
+          {/* Sub-Topics - Displayed inline without dropdowns */}
+          {article.sections.map((section, index) => (
+            <div key={index} className="space-y-2">
+              <h2 className="text-lg font-semibold text-primary">{section.heading}</h2>
+              <div className="text-foreground leading-relaxed">
+                {section.content.split('\n\n').map((paragraph, pIndex) => {
+                  if (paragraph.startsWith('> ')) {
+                    return (
+                      <blockquote 
+                        key={pIndex} 
+                        className="border-l-4 border-accent pl-4 my-4 italic text-muted-foreground"
+                      >
+                        {paragraph.slice(2)}
+                      </blockquote>
+                    );
+                  }
+                  return <p key={pIndex} className="mb-3">{paragraph}</p>;
+                })}
+              </div>
+            </div>
+          ))}
+
+          {/* Final Takeaways */}
+          <div className="space-y-3">
+            <h2 className="text-lg font-semibold text-primary">Final Takeaways</h2>
+            <ul className="space-y-2">
+              {article.takeaways.map((takeaway, index) => (
+                <li key={index} className="flex items-start gap-3">
+                  <span className="w-6 h-6 rounded-full bg-accent/20 text-accent text-sm flex items-center justify-center flex-shrink-0 mt-0.5 font-medium">
+                    {index + 1}
+                  </span>
+                  <span className="text-foreground">{takeaway}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Hashtags - Comma separated at the end */}
+          {article.hashtags && article.hashtags.length > 0 && (
+            <div className="pt-4 border-t border-border">
+              <div className="flex items-center gap-2 mb-2">
+                <Hash className="h-4 w-4 text-primary" />
+                <span className="text-sm font-medium text-muted-foreground">Hashtags</span>
+              </div>
+              <p className="text-primary text-sm">
+                {article.hashtags.map(h => `#${h}`).join(', ')}
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Click to copy individual hashtags
+              </p>
+              <div className="flex flex-wrap gap-1 mt-2">
+                {article.hashtags.map((hashtag, index) => (
+                  <span 
+                    key={index}
+                    className="px-2 py-0.5 bg-primary/10 text-primary text-xs rounded hover:bg-primary/20 transition-colors cursor-pointer"
+                    onClick={() => navigator.clipboard.writeText(`#${hashtag}`)}
+                  >
+                    #{hashtag}
+                  </span>
+                ))}
+              </div>
+            </div>
           )}
         </div>
       </ScrollArea>

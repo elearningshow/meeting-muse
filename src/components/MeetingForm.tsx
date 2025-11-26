@@ -22,17 +22,17 @@ export const MeetingForm = ({
   disabled,
 }: MeetingFormProps) => {
   return (
-    <div className="grid gap-4 sm:grid-cols-3 p-4 bg-card rounded-xl shadow-card border border-border animate-fade-in">
+    <div className="grid gap-4 sm:grid-cols-3 p-4 sm:p-6 bg-card rounded-xl shadow-card border border-border animate-fade-in">
       <div className="space-y-2">
         <Label htmlFor="title" className="flex items-center gap-2 text-sm font-medium">
           <FileSignature className="h-4 w-4 text-primary" />
-          Meeting Title
+          Session Title
         </Label>
         <Input
           id="title"
           value={title}
           onChange={(e) => onTitleChange(e.target.value)}
-          placeholder="Weekly Team Standup"
+          placeholder="Insert Session Title"
           disabled={disabled}
           className="bg-background"
         />

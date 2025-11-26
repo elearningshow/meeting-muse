@@ -32,7 +32,7 @@ export const TranscriptView = ({
       <div className="flex items-center justify-between p-4 border-b border-border">
         <div className="flex items-center gap-2">
           <FileText className="h-5 w-5 text-primary" />
-          <h3 className="font-semibold text-foreground">Live Transcript</h3>
+          <h3 className="font-semibold text-foreground">Session Transcription</h3>
           {isRecording && (
             <span className="flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-accent/10 text-accent rounded-full">
               <span className="w-1.5 h-1.5 bg-accent rounded-full animate-pulse" />
@@ -57,11 +57,11 @@ export const TranscriptView = ({
         )}
       </div>
 
-      {/* Transcript Content */}
-      <ScrollArea className="flex-1 p-4">
+      {/* Transcript Content - Center aligned */}
+      <ScrollArea className="flex-1 p-4 sm:p-6">
         {hasContent ? (
           <div className="prose prose-sm max-w-none">
-            <p className="text-foreground leading-relaxed whitespace-pre-wrap">
+            <p className="text-foreground leading-relaxed whitespace-pre-wrap text-center sm:text-left">
               {transcript}
               {interimTranscript && (
                 <span className="text-muted-foreground opacity-70">
@@ -71,17 +71,17 @@ export const TranscriptView = ({
             </p>
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center h-48 text-center px-4">
+          <div className="flex flex-col items-center justify-center h-48 text-center px-6 sm:px-8">
             <div className={cn(
               "w-16 h-16 rounded-2xl flex items-center justify-center mb-4 overflow-hidden",
               isRecording ? "animate-recording shadow-glow" : ""
             )}>
               <img src={logoImg} alt="Record & Post" className="w-full h-full object-cover" />
             </div>
-            <p className="text-muted-foreground">
+            <p className="text-muted-foreground px-4">
               {isRecording 
                 ? "Listening... Start speaking to see the transcript" 
-                : "Your transcript will appear here"}
+                : "Click 'Start Session' to begin recording. Your transcript will appear here."}
             </p>
           </div>
         )}
