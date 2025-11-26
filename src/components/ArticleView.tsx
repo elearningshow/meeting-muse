@@ -1,4 +1,4 @@
-import { Copy, Check, Download, Image, Sparkles, ChevronDown, ChevronUp } from 'lucide-react';
+import { Copy, Check, Download, Image, Sparkles, ChevronDown, ChevronUp, Hash } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { GeneratedArticle } from '@/types/meeting';
@@ -16,19 +16,25 @@ export const ArticleView = ({ article, onGenerateImage, isGeneratingImage }: Art
   const [expandedSections, setExpandedSections] = useState<Set<number>>(new Set([0]));
 
   const handleCopy = async () => {
-    const text = `${article.title}\n\n${article.summary}\n\n${article.sections.map(s => `${s.heading}\n${s.content}`).join('\n\n')}\n\nKey Takeaways:\n${article.takeaways.map(t => `• ${t}`).join('\n')}`;
+    const hashtagText = article.hashtags?.length 
+      ? `\n\n${article.hashtags.map(h => `#${h}`).join(', ')}`
+      : '';
+    const text = `${article.title}\n\n${article.summary}\n\n${article.sections.map(s => `${s.heading}\n${s.content}`).join('\n\n')}\n\nKey Takeaways:\n${article.takeaways.map(t => `• ${t}`).join('\n')}${hashtagText}`;
     await navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
   const handleExport = () => {
-    const text = `${article.title}\n\n${article.summary}\n\n${article.sections.map(s => `${s.heading}\n${s.content}`).join('\n\n')}\n\nKey Takeaways:\n${article.takeaways.map(t => `• ${t}`).join('\n')}`;
+    const hashtagText = article.hashtags?.length 
+      ? `\n\n${article.hashtags.map(h => `#${h}`).join(', ')}`
+      : '';
+    const text = `${article.title}\n\n${article.summary}\n\n${article.sections.map(s => `${s.heading}\n${s.content}`).join('\n\n')}\n\nKey Takeaways:\n${article.takeaways.map(t => `• ${t}`).join('\n')}${hashtagText}`;
     const blob = new Blob([text], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${article.title.replace(/\s+/g, '_')}.txt`;
+    a.download = `${article.title.replace(/\s+/g, '_').substring(0, 50)}.txt`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -54,28 +60,28 @@ export const ArticleView = ({ article, onGenerateImage, isGeneratingImage }: Art
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="sm" onClick={handleCopy} className="gap-2">
             {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
-            {copied ? 'Copied!' : 'Copy'}
+            <span className="hidden sm:inline">{copied ? 'Copied!' : 'Copy'}</span>
           </Button>
           <Button variant="ghost" size="sm" onClick={handleExport} className="gap-2">
             <Download className="h-4 w-4" />
-            Export
+            <span className="hidden sm:inline">Export</span>
           </Button>
         </div>
       </div>
 
       {/* Content */}
       <ScrollArea className="flex-1">
-        <div className="p-6 space-y-6">
+        <div className="p-4 sm:p-6 space-y-6">
           {/* Title */}
-          <h1 className="text-2xl font-bold text-foreground">{article.title}</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground leading-tight">{article.title}</h1>
 
           {/* Summary */}
           <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
             <p className="text-sm font-medium text-primary mb-2">Summary</p>
-            <p className="text-foreground">{article.summary}</p>
+            <p className="text-foreground leading-relaxed">{article.summary}</p>
           </div>
 
-          {/* Sections */}
+          {/* Sections - LinkedIn Style */}
           <div className="space-y-3">
             {article.sections.map((section, index) => (
               <div key={index} className="border border-border rounded-lg overflow-hidden">
@@ -83,18 +89,31 @@ export const ArticleView = ({ article, onGenerateImage, isGeneratingImage }: Art
                   onClick={() => toggleSection(index)}
                   className="w-full flex items-center justify-between p-4 bg-secondary/50 hover:bg-secondary transition-colors"
                 >
-                  <h2 className="font-semibold text-foreground">{section.heading}</h2>
+                  <h2 className="font-semibold text-foreground text-left">{section.heading}</h2>
                   {expandedSections.has(index) ? (
-                    <ChevronUp className="h-5 w-5 text-muted-foreground" />
+                    <ChevronUp className="h-5 w-5 text-muted-foreground flex-shrink-0" />
                   ) : (
-                    <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                    <ChevronDown className="h-5 w-5 text-muted-foreground flex-shrink-0" />
                   )}
                 </button>
                 {expandedSections.has(index) && (
                   <div className="p-4 animate-fade-in">
-                    <p className="text-foreground leading-relaxed whitespace-pre-wrap">
-                      {section.content}
-                    </p>
+                    <div className="prose prose-sm max-w-none text-foreground leading-relaxed">
+                      {section.content.split('\n\n').map((paragraph, pIndex) => {
+                        if (paragraph.startsWith('> ')) {
+                          // Blockquote styling
+                          return (
+                            <blockquote 
+                              key={pIndex} 
+                              className="border-l-4 border-primary pl-4 my-4 italic text-muted-foreground"
+                            >
+                              {paragraph.slice(2)}
+                            </blockquote>
+                          );
+                        }
+                        return <p key={pIndex} className="mb-4">{paragraph}</p>;
+                      })}
+                    </div>
                   </div>
                 )}
               </div>
@@ -115,6 +134,28 @@ export const ArticleView = ({ article, onGenerateImage, isGeneratingImage }: Art
               ))}
             </ul>
           </div>
+
+          {/* Hashtags */}
+          {article.hashtags && article.hashtags.length > 0 && (
+            <div className="p-4 bg-secondary/50 rounded-lg border border-border">
+              <div className="flex items-center gap-2 mb-3">
+                <Hash className="h-4 w-4 text-primary" />
+                <p className="text-sm font-medium text-foreground">Suggested Hashtags</p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {article.hashtags.map((hashtag, index) => (
+                  <span 
+                    key={index}
+                    className="px-3 py-1 bg-primary/10 text-primary text-sm rounded-full hover:bg-primary/20 transition-colors cursor-pointer"
+                    onClick={() => navigator.clipboard.writeText(`#${hashtag}`)}
+                  >
+                    #{hashtag}
+                  </span>
+                ))}
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">Click any hashtag to copy</p>
+            </div>
+          )}
 
           {/* Generated Image */}
           {article.generatedImage ? (
