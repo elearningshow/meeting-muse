@@ -30,7 +30,7 @@ export const ArticlePromptForm = ({
             </div>
             <div>
               <h2 className="font-semibold text-lg text-foreground">Generate Article</h2>
-              <p className="text-sm text-muted-foreground">Customize your article output</p>
+              <p className="text-sm text-muted-foreground">Customize your article from session transcription</p>
             </div>
           </div>
           <Button variant="ghost" size="icon" onClick={onCancel}>
@@ -99,7 +99,7 @@ export const ArticlePromptForm = ({
             <Input
               value={prompt.audience}
               onChange={(e) => onPromptChange({ ...prompt, audience: e.target.value })}
-              placeholder="e.g., Team members, Executives, Clients"
+              placeholder="e.g., Team members, Industry professionals, Clients"
             />
           </div>
         </div>

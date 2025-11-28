@@ -1,7 +1,8 @@
-import { FileText, Copy, Check } from 'lucide-react';
+import { FileText, Copy, Check, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { useState } from 'react';
+import { Textarea } from '@/components/ui/textarea';
+import { useState, useRef } from 'react';
 import { cn } from '@/lib/utils';
 import logoImg from '@/assets/logo.jpg';
 
@@ -9,19 +10,56 @@ interface TranscriptViewProps {
   transcript: string;
   interimTranscript?: string;
   isRecording: boolean;
+  sessionTitle?: string;
+  attendees?: string;
+  date?: string;
+  onTranscriptChange?: (newTranscript: string) => void;
 }
 
 export const TranscriptView = ({
   transcript,
   interimTranscript,
   isRecording,
+  sessionTitle,
+  attendees,
+  date,
+  onTranscriptChange,
 }: TranscriptViewProps) => {
   const [copied, setCopied] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedTranscript, setEditedTranscript] = useState(transcript);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(transcript);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file && file.type === 'text/plain') {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const text = e.target?.result as string;
+        if (onTranscriptChange) {
+          onTranscriptChange(text);
+        }
+      };
+      reader.readAsText(file);
+    }
+  };
+
+  const handleSaveEdit = () => {
+    if (onTranscriptChange && editedTranscript !== transcript) {
+      onTranscriptChange(editedTranscript);
+    }
+    setIsEditing(false);
+  };
+
+  const handleCancelEdit = () => {
+    setEditedTranscript(transcript);
+    setIsEditing(false);
   };
 
   const hasContent = transcript.length > 0 || (interimTranscript && interimTranscript.length > 0);
@@ -40,36 +78,118 @@ export const TranscriptView = ({
             </span>
           )}
         </div>
-        {transcript.length > 0 && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleCopy}
-            className="gap-2"
-          >
-            {copied ? (
-              <Check className="h-4 w-4 text-green-500" />
-            ) : (
-              <Copy className="h-4 w-4" />
-            )}
-            <span className="hidden sm:inline">{copied ? 'Copied!' : 'Copy'}</span>
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          {!isRecording && onTranscriptChange && (
+            <>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".txt"
+                onChange={handleFileUpload}
+                className="hidden"
+              />
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => fileInputRef.current?.click()}
+                className="gap-2"
+              >
+                <Upload className="h-4 w-4" />
+                <span className="hidden sm:inline">Upload</span>
+              </Button>
+            </>
+          )}
+          {transcript.length > 0 && !isEditing && (
+            <>
+              {onTranscriptChange && !isRecording && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsEditing(true)}
+                  className="gap-2"
+                >
+                  <span className="hidden sm:inline">Edit</span>
+                </Button>
+              )}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleCopy}
+                className="gap-2"
+              >
+                {copied ? (
+                  <Check className="h-4 w-4 text-green-500" />
+                ) : (
+                  <Copy className="h-4 w-4" />
+                )}
+                <span className="hidden sm:inline">{copied ? 'Copied!' : 'Copy'}</span>
+              </Button>
+            </>
+          )}
+          {isEditing && (
+            <>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleCancelEdit}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="default"
+                size="sm"
+                onClick={handleSaveEdit}
+              >
+                Save
+              </Button>
+            </>
+          )}
+        </div>
       </div>
 
-      {/* Transcript Content - Center aligned */}
+      {/* Transcript Content */}
       <ScrollArea className="flex-1 p-4 sm:p-6">
         {hasContent ? (
-          <div className="prose prose-sm max-w-none">
-            <p className="text-foreground leading-relaxed whitespace-pre-wrap text-center sm:text-left">
-              {transcript}
-              {interimTranscript && (
-                <span className="text-muted-foreground opacity-70">
-                  {interimTranscript}
-                </span>
+          isEditing ? (
+            <Textarea
+              value={editedTranscript}
+              onChange={(e) => setEditedTranscript(e.target.value)}
+              className="min-h-[400px] font-mono text-sm"
+              placeholder="Edit your transcription..."
+            />
+          ) : (
+            <div className="prose prose-sm max-w-none space-y-4">
+              {(sessionTitle || attendees || date) && (
+                <div className="border-b border-border pb-4 mb-4">
+                  {sessionTitle && (
+                    <h2 className="text-xl font-semibold text-foreground mb-2">{sessionTitle}</h2>
+                  )}
+                  <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+                    {attendees && (
+                      <div>
+                        <span className="font-medium">Attendees:</span> {attendees}
+                      </div>
+                    )}
+                    {date && (
+                      <div>
+                        <span className="font-medium">Date:</span> {date}
+                      </div>
+                    )}
+                  </div>
+                </div>
               )}
-            </p>
-          </div>
+              <div className="text-foreground leading-relaxed whitespace-pre-wrap">
+                {transcript.split('\n\n').map((paragraph, idx) => (
+                  <p key={idx} className="mb-4">{paragraph}</p>
+                ))}
+                {interimTranscript && (
+                  <span className="text-muted-foreground opacity-70">
+                    {interimTranscript}
+                  </span>
+                )}
+              </div>
+            </div>
+          )
         ) : (
           <div className="flex flex-col items-center justify-center h-48 text-center px-6 sm:px-8">
             <div className={cn(

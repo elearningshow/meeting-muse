@@ -188,6 +188,14 @@ const Index = () => {
     toast({ title: 'Session Renamed', description: 'The session title has been updated.' });
   }, [updateMeeting, selectedMeeting, toast]);
 
+  const handleTranscriptChange = useCallback((newTranscript: string) => {
+    if (selectedMeeting) {
+      updateMeeting(selectedMeeting.id, { transcript: newTranscript });
+      setSelectedMeeting({ ...selectedMeeting, transcript: newTranscript });
+      toast({ title: 'Transcription Updated', description: 'Your changes have been saved.' });
+    }
+  }, [updateMeeting, selectedMeeting, toast]);
+
   if (!hasCompletedOnboarding) {
     return <Onboarding onComplete={() => setHasCompletedOnboarding(true)} />;
   }
@@ -219,6 +227,7 @@ const Index = () => {
               }}
               onGenerateImage={handleGenerateImage}
               isGeneratingImage={isGeneratingImage}
+              onTranscriptChange={handleTranscriptChange}
             />
           ) : (
             <div className="h-full overflow-auto p-4 sm:p-6 md:p-8 space-y-6">

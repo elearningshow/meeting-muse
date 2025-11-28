@@ -8,94 +8,87 @@ export const generateArticle = async (
   // Simulate AI processing delay
   await new Promise(resolve => setTimeout(resolve, 2000));
 
-  // Generate mock article based on transcript length
-  const words = transcript.split(' ').filter(w => w.length > 0);
-  const topicWords = words.slice(0, 10).join(' ');
+  // Extract meaningful content from transcript
+  const words = transcript.split(/\s+/).filter(w => w.length > 0);
+  const sentences = transcript.split(/[.!?]+/).filter(s => s.trim().length > 0);
+  
+  // Extract key themes by finding frequently mentioned words (excluding common words)
+  const commonWords = new Set(['the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'from', 'as', 'is', 'was', 'are', 'were', 'been', 'be', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'should', 'could', 'can', 'may', 'might', 'must', 'shall', 'i', 'you', 'he', 'she', 'it', 'we', 'they', 'my', 'your', 'his', 'her', 'its', 'our', 'their', 'this', 'that', 'these', 'those', 'what', 'which', 'who', 'when', 'where', 'why', 'how']);
+  
+  const wordFreq: Record<string, number> = {};
+  words.forEach(word => {
+    const clean = word.toLowerCase().replace(/[^a-z0-9]/g, '');
+    if (clean.length > 3 && !commonWords.has(clean)) {
+      wordFreq[clean] = (wordFreq[clean] || 0) + 1;
+    }
+  });
+  
+  const topWords = Object.entries(wordFreq)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 8)
+    .map(([word]) => word);
 
-  // Generate AI-style title based on content themes
-  const titleOptions = [
-    `Unlocking Innovation: Key Insights from Today's Session`,
-    `Strategic Perspectives: A Deep Dive into ${topicWords.substring(0, 30)}`,
-    `Transforming Ideas into Action: Session Highlights`,
-    `The Path Forward: Essential Takeaways from Our Discussion`,
-    `Building Momentum: Collaborative Insights and Next Steps`,
+  // Generate contextual title based on top themes
+  const titleTemplates = [
+    `Insights on ${topWords[0] || 'Key Topics'}`,
+    `Understanding ${topWords[0] || 'Core Themes'}`,
+    `Exploring ${topWords[0] || 'Important Concepts'}`,
+    `${topWords[0] ? topWords[0].charAt(0).toUpperCase() + topWords[0].slice(1) : 'Session'} Discussion Highlights`,
   ];
-  const generatedTitle = titleOptions[Math.floor(Math.random() * titleOptions.length)];
+  const generatedTitle = titleTemplates[Math.floor(Math.random() * titleTemplates.length)];
 
-  // Generate 4-6 sub-topics aligned with LinkedIn article style
+  // Extract actual content snippets for overview
+  const firstSentences = sentences.slice(0, 3).join('. ').substring(0, 200);
+  
+  // Generate overview based on transcript content
+  const sessionOverview = `This ${prompt.style} session explored several key areas related to ${topWords.slice(0, 3).join(', ')}. The discussion covered practical applications and theoretical foundations, providing ${prompt.audience || 'participants'} with actionable insights and deeper understanding.
+
+${firstSentences}${firstSentences.endsWith('.') ? '' : '...'} The session emphasized collaborative learning and knowledge sharing among attendees.`;
+
+  // Generate sub-topics based on content themes
   const subTopicTemplates = [
     { 
-      heading: 'Setting the Stage', 
-      content: `The session began with a comprehensive overview of the current landscape. Participants explored the foundational concepts that would guide the discussion, establishing a shared understanding of the challenges and opportunities at hand.
-
-Understanding the context is crucial for meaningful progress. The team identified key priorities and aligned on the strategic direction, ensuring everyone was prepared to contribute effectively to the conversation.`
+      heading: `Understanding ${topWords[0] || 'Core Concepts'}`, 
+      content: `The session opened with an exploration of ${topWords[0] || 'fundamental topics'}. Participants examined how these concepts apply in practical scenarios, discussing both challenges and opportunities.\n\nKey points included the importance of ${topWords[1] || 'strategic thinking'} and how it connects to ${topWords[2] || 'daily operations'}. The group shared real examples that illustrated these principles in action.`
     },
     { 
-      heading: 'Core Insights and Discoveries', 
-      content: `Several breakthrough insights emerged during the session. The discussion revealed patterns and opportunities that had previously gone unnoticed, offering fresh perspectives on longstanding challenges.
-
-> "The most impactful ideas often come from unexpected connections between different disciplines and perspectives."
-
-These discoveries underscore the value of collaborative exploration and open dialogue in driving innovation and problem-solving.`
+      heading: `Practical Applications`, 
+      content: `Moving from theory to practice, the discussion highlighted concrete ways to implement these ideas. Participants explored how ${topWords[0] || 'core concepts'} translate into actionable steps.\n\nThe team identified specific strategies for ${topWords[1] || 'implementation'}, considering resource constraints and organizational dynamics. This practical focus ensured the insights could be applied immediately.`
     },
     { 
-      heading: 'Practical Applications', 
-      content: `Moving from theory to practice, the group identified concrete ways to apply these insights. The focus shifted to actionable strategies that could be implemented immediately, with clear ownership and timelines.
-
-Each application was evaluated against real-world constraints, ensuring that the proposed solutions were both ambitious and achievable within existing resource frameworks.`
+      heading: `Key Challenges and Solutions`, 
+      content: `The conversation addressed potential obstacles related to ${topWords[2] || 'implementation'}. Participants candidly discussed barriers they've encountered and shared strategies that proved effective.\n\nBy addressing these challenges proactively, the group developed practical solutions that strengthen the overall approach and increase likelihood of success.`
     },
     { 
-      heading: 'Challenges and Considerations', 
-      content: `No meaningful discussion is complete without acknowledging potential obstacles. The team candidly assessed the challenges that could impact implementation, from technical constraints to organizational dynamics.
-
-By addressing these considerations proactively, the group developed contingency plans and mitigation strategies that strengthen the overall approach.`
+      heading: `Collaborative Insights`, 
+      content: `The session demonstrated the power of collective intelligence around ${topWords[0] || 'shared goals'}. Diverse perspectives converged to create solutions more robust than any individual could develop alone.\n\n> "The best insights come from bringing different viewpoints together and finding common ground."\n\nThis collaborative energy will carry forward into implementation phases.`
     },
     { 
-      heading: 'Collaborative Momentum', 
-      content: `The session demonstrated the power of collective intelligence. Diverse perspectives converged to create solutions more robust than any individual could develop alone.
-
-This collaborative energy will carry forward as the team moves into implementation, with each member bringing unique strengths to the shared mission.`
-    },
-    { 
-      heading: 'Looking Ahead', 
-      content: `The session concluded with a clear vision for the future. Participants left with renewed clarity on priorities and a shared commitment to driving meaningful progress.
-
-Next steps were defined, follow-up meetings scheduled, and accountability structures established to maintain momentum and ensure continued alignment.`
+      heading: `Moving Forward`, 
+      content: `Participants left with clarity on next steps regarding ${topWords[0] || 'key initiatives'}. The group established concrete action items and accountability structures to maintain momentum.\n\nFollow-up sessions were scheduled to assess progress and adapt strategies based on learnings. This ensures continued alignment and effective execution.`
     },
   ];
 
-  // Select 4-6 sections based on prompt length
   const sectionCount = prompt.length === 'short' ? 4 : prompt.length === 'medium' ? 5 : 6;
   const sections = subTopicTemplates.slice(0, sectionCount);
 
-  // Generate 150-200 word session overview
-  const sessionOverview = `This ${prompt.style} session brought together key stakeholders to explore critical topics and drive meaningful outcomes. Written in a ${prompt.tone} tone for ${prompt.audience || 'professionals and team members'}, this article captures the essential discussions, decisions, and insights shared during our time together.
-
-The conversation covered multiple dimensions of the subject matter, from foundational concepts to practical applications. Participants engaged in dynamic dialogue, sharing perspectives that enriched the collective understanding and opened new avenues for exploration.
-
-Key themes emerged around innovation, collaboration, and strategic execution. The session highlighted both the opportunities ahead and the challenges to navigate, providing a balanced view that informs thoughtful action planning.
-
-As organizations continue to evolve in an increasingly complex landscape, sessions like this become vital touchpoints for alignment and progress. The insights captured here serve as a foundation for continued growth and development.`;
-
-  // Generate 3-5 actionable takeaways
+  // Generate takeaways based on themes
   const takeaways = [
-    'Prioritize collaborative approaches that leverage diverse perspectives and expertise across teams',
-    'Implement quick wins immediately while building toward longer-term strategic initiatives',
-    'Establish clear communication channels and regular check-ins to maintain alignment and momentum',
-    'Document decisions and rationale to create institutional knowledge and enable future reference',
-    'Schedule follow-up sessions to assess progress and adapt strategies based on learnings',
+    `Focus on ${topWords[0] || 'core principles'} to drive meaningful progress and alignment across teams`,
+    `Implement ${topWords[1] || 'key strategies'} systematically while remaining flexible to adapt as needed`,
+    `Leverage collaborative approaches that bring diverse perspectives to problem-solving`,
+    `Establish clear communication and regular check-ins to maintain momentum`,
+    `Document insights and decisions to build institutional knowledge for future reference`,
   ].slice(0, prompt.length === 'short' ? 3 : prompt.length === 'medium' ? 4 : 5);
 
-  // Generate 8-12 relevant hashtags for LinkedIn optimization
-  const allHashtags = [
-    'SessionInsights', 'ProfessionalDevelopment', 'TeamCollaboration', 
-    'StrategicPlanning', 'Innovation', 'Leadership', 'WorkplaceExcellence',
-    'ContinuousLearning', 'BusinessStrategy', 'KnowledgeSharing',
-    'FutureOfWork', 'GrowthMindset', 'ActionableInsights', 'TeamSuccess',
-    'ProfessionalGrowth', 'CollaborativeLeadership'
-  ];
+  // Generate hashtags based on content
+  const contentHashtags = topWords.slice(0, 4).map(word => 
+    word.charAt(0).toUpperCase() + word.slice(1)
+  );
+  const genericHashtags = ['SessionInsights', 'ProfessionalDevelopment', 'TeamCollaboration', 'KnowledgeSharing', 'ContinuousLearning', 'ActionableInsights'];
   
-  const hashtagCount = 8 + Math.floor(Math.random() * 5); // 8-12 hashtags
+  const allHashtags = [...contentHashtags, ...genericHashtags];
+  const hashtagCount = 8 + Math.floor(Math.random() * 5);
   const selectedHashtags = allHashtags
     .sort(() => Math.random() - 0.5)
     .slice(0, hashtagCount);

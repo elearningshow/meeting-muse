@@ -29,7 +29,7 @@ export const Header = ({ onMenuClick }: HeaderProps) => {
             </div>
             <div className="hidden sm:block">
               <h1 className="text-lg font-bold text-foreground">Record & Post</h1>
-              <p className="text-xs text-muted-foreground">Meeting Transcription</p>
+              <p className="text-xs text-muted-foreground">Session Transcription</p>
             </div>
           </div>
         </div>

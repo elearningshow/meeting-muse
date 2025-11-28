@@ -16,6 +16,7 @@ interface MeetingDetailProps {
   onGenerateArticle: () => void;
   onGenerateImage: () => void;
   isGeneratingImage?: boolean;
+  onTranscriptChange?: (newTranscript: string) => void;
 }
 
 export const MeetingDetail = ({
@@ -26,6 +27,7 @@ export const MeetingDetail = ({
   onGenerateArticle,
   onGenerateImage,
   isGeneratingImage,
+  onTranscriptChange,
 }: MeetingDetailProps) => {
   const [showQA, setShowQA] = useState(false);
 
@@ -91,7 +93,7 @@ export const MeetingDetail = ({
             className="gap-2"
           >
             <MessageSquare className="h-4 w-4" />
-            <span className="hidden sm:inline">Ask Q&A</span>
+            <span className="hidden sm:inline">Ask About Session</span>
           </Button>
           <Button
             variant="ghost"
@@ -119,6 +121,10 @@ export const MeetingDetail = ({
               <TranscriptView
                 transcript={meeting.transcript}
                 isRecording={false}
+                sessionTitle={meeting.title}
+                attendees={meeting.participants}
+                date={formatDate(meeting.createdAt)}
+                onTranscriptChange={onTranscriptChange}
               />
               {!meeting.article && meeting.transcript.length > 50 && (
                 <Button variant="default" onClick={onGenerateArticle} className="gap-2 bg-accent text-accent-foreground hover:bg-accent/90">
@@ -134,6 +140,7 @@ export const MeetingDetail = ({
                 article={meeting.article}
                 onGenerateImage={onGenerateImage}
                 isGeneratingImage={isGeneratingImage}
+                onRegenerate={onGenerateArticle}
               />
             )}
           </TabsContent>
