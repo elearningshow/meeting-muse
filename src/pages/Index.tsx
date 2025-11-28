@@ -1,12 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Header } from '@/components/Header';
 import { Sidebar } from '@/components/Sidebar';
-import { MeetingForm } from '@/components/MeetingForm';
+import { SessionForm } from '@/components/SessionForm';
 import { RecordingControls } from '@/components/RecordingControls';
 import { TranscriptView } from '@/components/TranscriptView';
 import { ArticlePromptForm } from '@/components/ArticlePromptForm';
 import { ArticleView } from '@/components/ArticleView';
-import { MeetingDetail } from '@/components/MeetingDetail';
+import { SessionDetail } from '@/components/SessionDetail';
 import { Onboarding } from '@/components/Onboarding';
 import { StorageWarning } from '@/components/StorageWarning';
 import { SessionQA } from '@/components/SessionQA';
@@ -216,7 +216,7 @@ const Index = () => {
 
         <main className="flex-1 overflow-hidden">
           {selectedMeeting ? (
-            <MeetingDetail
+            <SessionDetail
               meeting={selectedMeeting}
               onBack={() => setSelectedMeeting(null)}
               onDelete={handleDeleteMeeting}
@@ -235,7 +235,7 @@ const Index = () => {
 
               {/* Session Form - Full width container */}
               <div className="w-full max-w-6xl mx-auto">
-                <MeetingForm
+                <SessionForm
                   title={title}
                   participants={participants}
                   date={date}
