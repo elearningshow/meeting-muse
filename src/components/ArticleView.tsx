@@ -8,9 +8,10 @@ interface ArticleViewProps {
   article: GeneratedArticle;
   onGenerateImage: () => void;
   isGeneratingImage?: boolean;
+  onRegenerate?: () => void;
 }
 
-export const ArticleView = ({ article, onGenerateImage, isGeneratingImage }: ArticleViewProps) => {
+export const ArticleView = ({ article, onGenerateImage, isGeneratingImage, onRegenerate }: ArticleViewProps) => {
   const [copied, setCopied] = useState(false);
 
   // Build the full article text for copy/export
@@ -75,6 +76,12 @@ export const ArticleView = ({ article, onGenerateImage, isGeneratingImage }: Art
           <h3 className="font-semibold text-foreground">Generated Article</h3>
         </div>
         <div className="flex items-center gap-2">
+          {onRegenerate && (
+            <Button variant="ghost" size="sm" onClick={onRegenerate} className="gap-2">
+              <Sparkles className="h-4 w-4" />
+              <span className="hidden sm:inline">Regenerate</span>
+            </Button>
+          )}
           <Button variant="ghost" size="sm" onClick={handleCopy} className="gap-2">
             {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
             <span className="hidden sm:inline">{copied ? 'Copied!' : 'Copy'}</span>
