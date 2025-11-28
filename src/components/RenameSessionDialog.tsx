@@ -4,12 +4,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 
-interface RenameMeetingDialogProps {
+interface RenameSessionDialogProps {
   currentTitle: string;
   onRename: (newTitle: string) => void;
 }
 
-export const RenameMeetingDialog = ({ currentTitle, onRename }: RenameMeetingDialogProps) => {
+export const RenameSessionDialog = ({ currentTitle, onRename }: RenameSessionDialogProps) => {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState(currentTitle);
 

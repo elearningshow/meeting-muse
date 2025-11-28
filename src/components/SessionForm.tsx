@@ -2,7 +2,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Calendar, Users, FileSignature } from 'lucide-react';
 
-interface MeetingFormProps {
+interface SessionFormProps {
   title: string;
   participants: string;
   date: string;
@@ -12,7 +12,7 @@ interface MeetingFormProps {
   disabled?: boolean;
 }
 
-export const MeetingForm = ({
+export const SessionForm = ({
   title,
   participants,
   date,
@@ -20,7 +20,7 @@ export const MeetingForm = ({
   onParticipantsChange,
   onDateChange,
   disabled,
-}: MeetingFormProps) => {
+}: SessionFormProps) => {
   return (
     <div className="grid gap-4 sm:grid-cols-3 p-4 sm:p-6 bg-card rounded-xl shadow-card border border-border animate-fade-in">
       <div className="space-y-2">

@@ -4,11 +4,11 @@ import { Meeting } from '@/types/meeting';
 import { ArticleView } from './ArticleView';
 import { TranscriptView } from './TranscriptView';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { RenameMeetingDialog } from './RenameMeetingDialog';
+import { RenameSessionDialog } from './RenameSessionDialog';
 import { SessionQA } from './SessionQA';
 import { useState } from 'react';
 
-interface MeetingDetailProps {
+interface SessionDetailProps {
   meeting: Meeting;
   onBack: () => void;
   onDelete: (id: string) => void;
@@ -19,7 +19,7 @@ interface MeetingDetailProps {
   onTranscriptChange?: (newTranscript: string) => void;
 }
 
-export const MeetingDetail = ({
+export const SessionDetail = ({
   meeting,
   onBack,
   onDelete,
@@ -28,7 +28,7 @@ export const MeetingDetail = ({
   onGenerateImage,
   isGeneratingImage,
   onTranscriptChange,
-}: MeetingDetailProps) => {
+}: SessionDetailProps) => {
   const [showQA, setShowQA] = useState(false);
 
   const formatDate = (dateString: string) => {
@@ -61,7 +61,7 @@ export const MeetingDetail = ({
                 {meeting.title || 'Untitled Session'}
               </h1>
               {onRename && (
-                <RenameMeetingDialog
+                <RenameSessionDialog
                   currentTitle={meeting.title || 'Untitled Session'}
                   onRename={(newTitle) => onRename(meeting.id, newTitle)}
                 />
