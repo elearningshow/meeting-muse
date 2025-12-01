@@ -196,6 +196,11 @@ const Index = () => {
     }
   }, [updateMeeting, selectedMeeting, toast]);
 
+  const handleInitialTranscriptUpload = useCallback((uploadedTranscript: string) => {
+    setPendingTranscript(uploadedTranscript);
+    toast({ title: 'Transcription Uploaded', description: 'Your transcription has been loaded successfully.' });
+  }, [toast]);
+
   if (!hasCompletedOnboarding) {
     return <Onboarding onComplete={() => setHasCompletedOnboarding(true)} />;
   }
@@ -267,9 +272,10 @@ const Index = () => {
                   {/* Live Transcript - Full width when no article */}
                   <div className="min-h-[400px]">
                     <TranscriptView
-                      transcript={transcript}
+                      transcript={pendingTranscript || transcript}
                       interimTranscript={interimTranscript}
                       isRecording={isRecording}
+                      onTranscriptChange={handleInitialTranscriptUpload}
                     />
                   </div>
 
