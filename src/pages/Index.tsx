@@ -57,15 +57,25 @@ const Index = () => {
 
   useEffect(() => {
     if (speechError && speechError !== 'no-speech') {
+      const errorMessage = speechError === 'not-allowed' 
+        ? 'Microphone access denied. Please allow microphone permissions in your browser settings and try again.'
+        : `Error: ${speechError}. Please check your microphone permissions.`;
+      
       toast({
-        title: 'Speech Recognition Error',
-        description: `Error: ${speechError}. Please check your microphone permissions.`,
+        title: 'Microphone Permission Required',
+        description: errorMessage,
         variant: 'destructive',
+        duration: 6000,
       });
+      
+      // Reset recording state if permission denied
+      if (speechError === 'not-allowed') {
+        setRecordingState('idle');
+      }
     }
   }, [speechError, toast]);
 
-  const handleStartRecording = useCallback(() => {
+  const handleStartRecording = useCallback(async () => {
     if (storageStatus.warning === 'critical') {
       toast({
         title: 'Storage Critical',
@@ -78,7 +88,7 @@ const Index = () => {
     setDuration(0);
     setRecordingState('recording');
     setGeneratedArticle(null);
-    startListening();
+    await startListening();
   }, [storageStatus.warning, resetTranscript, startListening, toast]);
 
   const handlePauseRecording = useCallback(() => {
@@ -86,9 +96,9 @@ const Index = () => {
     stopListening();
   }, [stopListening]);
 
-  const handleResumeRecording = useCallback(() => {
+  const handleResumeRecording = useCallback(async () => {
     setRecordingState('recording');
-    startListening();
+    await startListening();
   }, [startListening]);
 
   const handleStopRecording = useCallback(() => {
