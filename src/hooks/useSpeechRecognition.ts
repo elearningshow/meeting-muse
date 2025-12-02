@@ -105,17 +105,31 @@ export const useSpeechRecognition = (): SpeechRecognitionHook => {
     };
   }, [isSupported]);
 
-  const startListening = useCallback(() => {
+  const startListening = useCallback(async () => {
     if (!recognitionRef.current || !isSupported) return;
     
     setError(null);
-    setIsListening(true);
-    isListeningRef.current = true;
     
+    // Explicitly request microphone permission first
     try {
-      recognitionRef.current.start();
-    } catch (e) {
-      console.log('Recognition already started');
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      // Stop the stream immediately, we just needed permission
+      stream.getTracks().forEach(track => track.stop());
+      
+      // Now start speech recognition
+      setIsListening(true);
+      isListeningRef.current = true;
+      
+      try {
+        recognitionRef.current.start();
+      } catch (e) {
+        console.log('Recognition already started');
+      }
+    } catch (permissionError) {
+      console.error('Microphone permission denied:', permissionError);
+      setError('not-allowed');
+      setIsListening(false);
+      isListeningRef.current = false;
     }
   }, [isSupported]);
 
