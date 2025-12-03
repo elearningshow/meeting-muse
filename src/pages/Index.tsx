@@ -10,10 +10,12 @@ import { SessionDetail } from '@/components/SessionDetail';
 import { Onboarding } from '@/components/Onboarding';
 import { StorageWarning } from '@/components/StorageWarning';
 import { SessionQA } from '@/components/SessionQA';
+import { MicrophoneDebugPanel } from '@/components/MicrophoneDebugPanel';
 import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
 import { useStorageStatus } from '@/hooks/useStorageStatus';
 import { useMeetings } from '@/hooks/useMeetings';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
+import { useMicrophoneDebug } from '@/hooks/useMicrophoneDebug';
 import { Meeting, ArticlePrompt, GeneratedArticle, RecordingState } from '@/types/meeting';
 import { generateArticle, generateImage } from '@/services/aiService';
 import { useToast } from '@/hooks/use-toast';
@@ -43,6 +45,7 @@ const Index = () => {
   const { transcript, interimTranscript, isListening, isSupported, startListening, stopListening, resetTranscript, error: speechError } = useSpeechRecognition();
   const storageStatus = useStorageStatus();
   const { meetings, addMeeting, updateMeeting, deleteMeeting } = useMeetings();
+  const micDebug = useMicrophoneDebug();
 
   const isRecording = recordingState === 'recording';
   const isActive = recordingState !== 'idle';
@@ -88,8 +91,8 @@ const Index = () => {
     setDuration(0);
     setRecordingState('recording');
     setGeneratedArticle(null);
-    await startListening();
-  }, [storageStatus.warning, resetTranscript, startListening, toast]);
+    await startListening(micDebug.addLog);
+  }, [storageStatus.warning, resetTranscript, startListening, toast, micDebug.addLog]);
 
   const handlePauseRecording = useCallback(() => {
     setRecordingState('paused');
@@ -98,8 +101,8 @@ const Index = () => {
 
   const handleResumeRecording = useCallback(async () => {
     setRecordingState('recording');
-    await startListening();
-  }, [startListening]);
+    await startListening(micDebug.addLog);
+  }, [startListening, micDebug.addLog]);
 
   const handleStopRecording = useCallback(() => {
     setRecordingState('idle');
@@ -224,6 +227,8 @@ const Index = () => {
         selectedMeetingId={selectedMeeting?.id}
         onSelectMeeting={handleSelectMeeting}
         onNewMeeting={handleNewMeeting}
+        debugEnabled={micDebug.debugEnabled}
+        onDebugToggle={micDebug.setDebugEnabled}
       />
 
       <div className="flex-1 flex flex-col min-w-0">
@@ -247,6 +252,20 @@ const Index = () => {
           ) : (
             <div className="h-full overflow-auto p-4 sm:p-6 md:p-8 space-y-6">
               {storageStatus.warning !== 'none' && <StorageWarning status={storageStatus} />}
+
+              {/* Microphone Debug Panel */}
+              {micDebug.debugEnabled && (
+                <div className="w-full max-w-6xl mx-auto">
+                  <MicrophoneDebugPanel
+                    strategyStatus={micDebug.strategyStatus}
+                    activeStrategy={micDebug.activeStrategy}
+                    logs={micDebug.logs}
+                    onTestStrategy={micDebug.testStrategy}
+                    onTestAll={micDebug.testAllStrategies}
+                    allStrategiesFailed={micDebug.allStrategiesFailed}
+                  />
+                </div>
+              )}
 
               {/* Session Form - Full width container */}
               <div className="w-full max-w-6xl mx-auto">

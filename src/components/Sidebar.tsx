@@ -13,6 +13,8 @@ interface SidebarProps {
   selectedMeetingId?: string;
   onSelectMeeting: (meeting: Meeting) => void;
   onNewMeeting: () => void;
+  debugEnabled?: boolean;
+  onDebugToggle?: (enabled: boolean) => void;
 }
 
 export const Sidebar = ({
@@ -22,6 +24,8 @@ export const Sidebar = ({
   selectedMeetingId,
   onSelectMeeting,
   onNewMeeting,
+  debugEnabled,
+  onDebugToggle,
 }: SidebarProps) => {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -109,7 +113,7 @@ export const Sidebar = ({
           </ScrollArea>
 
           <div className="p-4 border-t border-sidebar-border space-y-1">
-            <SettingsDialog />
+            <SettingsDialog debugEnabled={debugEnabled} onDebugToggle={onDebugToggle} />
             <HelpDialog />
           </div>
         </div>
