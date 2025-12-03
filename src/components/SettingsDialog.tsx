@@ -1,13 +1,21 @@
 import { useState } from 'react';
-import { Settings, Download, Check, Trash2, Cpu, X } from 'lucide-react';
+import { Settings, Download, Check, Trash2, Cpu, Bug } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
 import { useModelSettings } from '@/hooks/useModelSettings';
 import { cn } from '@/lib/utils';
 
-export const SettingsDialog = () => {
+interface SettingsDialogProps {
+  debugEnabled?: boolean;
+  onDebugToggle?: (enabled: boolean) => void;
+}
+
+export const SettingsDialog = ({ debugEnabled = false, onDebugToggle }: SettingsDialogProps) => {
   const [open, setOpen] = useState(false);
   const { 
     models, 
@@ -135,6 +143,31 @@ export const SettingsDialog = () => {
             <p className="text-xs text-muted-foreground">
               <strong>Note:</strong> Models are stored locally on your device. Larger models provide better quality but require more storage and processing power.
             </p>
+          </div>
+
+          <Separator />
+
+          {/* Debug Settings */}
+          <div className="space-y-3">
+            <h4 className="text-sm font-medium text-foreground flex items-center gap-2">
+              <Bug className="h-4 w-4" />
+              Developer Options
+            </h4>
+            <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+              <div className="space-y-0.5">
+                <Label htmlFor="debug-mode" className="text-sm font-medium">
+                  Microphone Debug Mode
+                </Label>
+                <p className="text-xs text-muted-foreground">
+                  Show debug panel to test microphone access strategies
+                </p>
+              </div>
+              <Switch
+                id="debug-mode"
+                checked={debugEnabled}
+                onCheckedChange={onDebugToggle}
+              />
+            </div>
           </div>
         </div>
       </DialogContent>
