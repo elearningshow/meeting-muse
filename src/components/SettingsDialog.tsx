@@ -34,7 +34,7 @@ export const SettingsDialog = ({ debugEnabled = false, onDebugToggle }: Settings
           Settings
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Cpu className="h-5 w-5 text-primary" />
@@ -42,18 +42,43 @@ export const SettingsDialog = ({ debugEnabled = false, onDebugToggle }: Settings
           </DialogTitle>
         </DialogHeader>
         
-        <div className="space-y-4">
-          {/* Current Model Display */}
-          <div className="p-4 bg-primary/10 rounded-lg border border-primary/20">
-            <p className="text-sm text-muted-foreground mb-1">Currently Selected</p>
-            <p className="font-semibold text-foreground">{selectedModel.name}</p>
-            <p className="text-sm text-muted-foreground mt-1">{selectedModel.description}</p>
-          </div>
+        <ScrollArea className="flex-1 pr-4 -mr-4">
+          <div className="space-y-4 pb-4">
+            {/* Debug Settings - Moved to top for easier access */}
+            <div className="space-y-3">
+              <h4 className="text-sm font-medium text-foreground flex items-center gap-2">
+                <Bug className="h-4 w-4" />
+                Developer Options
+              </h4>
+              <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                <div className="space-y-0.5">
+                  <Label htmlFor="debug-mode" className="text-sm font-medium">
+                    Microphone Debug Mode
+                  </Label>
+                  <p className="text-xs text-muted-foreground">
+                    Show debug panel to test microphone access strategies
+                  </p>
+                </div>
+                <Switch
+                  id="debug-mode"
+                  checked={debugEnabled}
+                  onCheckedChange={onDebugToggle}
+                />
+              </div>
+            </div>
 
-          {/* Model List */}
-          <div>
-            <h4 className="text-sm font-medium text-foreground mb-3">Available Models</h4>
-            <ScrollArea className="h-[300px] pr-4">
+            <Separator />
+
+            {/* Current Model Display */}
+            <div className="p-4 bg-primary/10 rounded-lg border border-primary/20">
+              <p className="text-sm text-muted-foreground mb-1">Currently Selected</p>
+              <p className="font-semibold text-foreground">{selectedModel.name}</p>
+              <p className="text-sm text-muted-foreground mt-1">{selectedModel.description}</p>
+            </div>
+
+            {/* Model List */}
+            <div>
+              <h4 className="text-sm font-medium text-foreground mb-3">Available Models</h4>
               <div className="space-y-3">
                 {models.map((model) => {
                   const isDownloading = downloadProgress[model.id] !== undefined;
@@ -135,41 +160,16 @@ export const SettingsDialog = ({ debugEnabled = false, onDebugToggle }: Settings
                   );
                 })}
               </div>
-            </ScrollArea>
-          </div>
+            </div>
 
-          {/* Instructions */}
-          <div className="p-3 bg-muted rounded-lg">
-            <p className="text-xs text-muted-foreground">
-              <strong>Note:</strong> Models are stored locally on your device. Larger models provide better quality but require more storage and processing power.
-            </p>
-          </div>
-
-          <Separator />
-
-          {/* Debug Settings */}
-          <div className="space-y-3">
-            <h4 className="text-sm font-medium text-foreground flex items-center gap-2">
-              <Bug className="h-4 w-4" />
-              Developer Options
-            </h4>
-            <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-              <div className="space-y-0.5">
-                <Label htmlFor="debug-mode" className="text-sm font-medium">
-                  Microphone Debug Mode
-                </Label>
-                <p className="text-xs text-muted-foreground">
-                  Show debug panel to test microphone access strategies
-                </p>
-              </div>
-              <Switch
-                id="debug-mode"
-                checked={debugEnabled}
-                onCheckedChange={onDebugToggle}
-              />
+            {/* Instructions */}
+            <div className="p-3 bg-muted rounded-lg">
+              <p className="text-xs text-muted-foreground">
+                <strong>Note:</strong> Models are stored locally on your device. Larger models provide better quality but require more storage and processing power.
+              </p>
             </div>
           </div>
-        </div>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );
