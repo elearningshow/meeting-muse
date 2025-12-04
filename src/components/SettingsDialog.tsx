@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Settings, Download, Check, Trash2, Cpu, Bug } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Switch } from '@/components/ui/switch';
@@ -170,6 +170,12 @@ export const SettingsDialog = ({ debugEnabled = false, onDebugToggle }: Settings
             </div>
           </div>
         </ScrollArea>
+        
+        <DialogFooter className="mt-4 pt-4 border-t">
+          <Button onClick={() => setOpen(false)} className="w-full">
+            Done
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
