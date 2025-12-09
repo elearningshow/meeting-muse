@@ -11,7 +11,7 @@ import { Onboarding } from '@/components/Onboarding';
 import { StorageWarning } from '@/components/StorageWarning';
 import { SessionQA } from '@/components/SessionQA';
 import { MicrophoneDebugPanel } from '@/components/MicrophoneDebugPanel';
-import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
+import { useUnifiedSpeechRecognition } from '@/hooks/useUnifiedSpeechRecognition';
 import { useStorageStatus } from '@/hooks/useStorageStatus';
 import { useMeetings } from '@/hooks/useMeetings';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
@@ -42,7 +42,7 @@ const Index = () => {
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [pendingTranscript, setPendingTranscript] = useState('');
 
-  const { transcript, interimTranscript, isListening, isSupported, startListening, stopListening, resetTranscript, error: speechError } = useSpeechRecognition();
+  const { transcript, interimTranscript, isListening, isSupported, startListening, stopListening, resetTranscript, error: speechError, isNative, platform } = useUnifiedSpeechRecognition();
   const storageStatus = useStorageStatus();
   const { meetings, addMeeting, updateMeeting, deleteMeeting } = useMeetings();
   const micDebug = useMicrophoneDebug();
@@ -291,6 +291,8 @@ const Index = () => {
                     onPause={handlePauseRecording}
                     onResume={handleResumeRecording}
                     onStop={handleStopRecording}
+                    isNative={isNative}
+                    platform={platform}
                   />
                 </div>
               </div>

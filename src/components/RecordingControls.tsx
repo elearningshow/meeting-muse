@@ -12,6 +12,8 @@ interface RecordingControlsProps {
   onPause: () => void;
   onResume: () => void;
   onStop: () => void;
+  isNative?: boolean;
+  platform?: string;
 }
 
 export const RecordingControls = ({
@@ -22,6 +24,8 @@ export const RecordingControls = ({
   onPause,
   onResume,
   onStop,
+  isNative = false,
+  platform = 'web',
 }: RecordingControlsProps) => {
   const formatTime = (seconds: number) => {
     const hrs = Math.floor(seconds / 3600);
@@ -132,6 +136,15 @@ export const RecordingControls = ({
           ? "Recording paused. Press Resume to continue or Stop to finish."
           : "Click 'Start Session' to begin recording and transcription"}
       </p>
+
+      {/* Platform Indicator */}
+      <div className="text-xs text-muted-foreground/60 flex items-center gap-2">
+        <span className={cn(
+          "w-2 h-2 rounded-full",
+          isNative ? "bg-green-500" : "bg-blue-500"
+        )} />
+        {isNative ? `Native ${platform}` : 'Web'} speech recognition
+      </div>
     </div>
   );
 };
