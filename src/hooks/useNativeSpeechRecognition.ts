@@ -1,5 +1,16 @@
 import { useState, useCallback, useRef } from 'react';
-import { SpeechRecognition } from '@capacitor-community/speech-recognition';
+import { isNativePlatform } from '@/utils/platform';
+
+// Lazy-loaded reference to the speech recognition plugin
+let SpeechRecognitionPlugin: typeof import('@capacitor-community/speech-recognition').SpeechRecognition | null = null;
+
+const getSpeechRecognition = async () => {
+  if (!SpeechRecognitionPlugin) {
+    const module = await import('@capacitor-community/speech-recognition');
+    SpeechRecognitionPlugin = module.SpeechRecognition;
+  }
+  return SpeechRecognitionPlugin;
+};
 
 interface NativeSpeechRecognitionHook {
   transcript: string;
@@ -29,7 +40,15 @@ export const useNativeSpeechRecognition = (): NativeSpeechRecognitionHook => {
     const log = addLog || console.log;
     setError(null);
 
+    // Guard for non-native platforms
+    if (!isNativePlatform()) {
+      log('[NATIVE] Not on native platform, skipping native speech recognition');
+      return;
+    }
+
     try {
+      const SpeechRecognition = await getSpeechRecognition();
+      
       // Remove any existing listeners first to prevent duplicates
       await SpeechRecognition.removeAllListeners();
       
@@ -97,13 +116,15 @@ export const useNativeSpeechRecognition = (): NativeSpeechRecognitionHook => {
           // Auto-restart if we're still supposed to be listening
           if (isListeningRef.current) {
             log('[NATIVE] Auto-restarting recognition...');
-            SpeechRecognition.start({
-              language: 'en-US',
-              maxResults: 1,
-              partialResults: true,
-              popup: false,
-            }).catch(err => {
-              log(`[NATIVE] Restart error: ${err.message}`);
+            getSpeechRecognition().then(SR => {
+              SR.start({
+                language: 'en-US',
+                maxResults: 1,
+                partialResults: true,
+                popup: false,
+              }).catch(err => {
+                log(`[NATIVE] Restart error: ${err.message}`);
+              });
             });
           }
         }
@@ -135,6 +156,7 @@ export const useNativeSpeechRecognition = (): NativeSpeechRecognitionHook => {
     isListeningRef.current = false;
     
     try {
+      const SpeechRecognition = await getSpeechRecognition();
       await SpeechRecognition.stop();
       console.log('[NATIVE] Stopped listening');
       
