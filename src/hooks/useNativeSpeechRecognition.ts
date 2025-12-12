@@ -18,8 +18,11 @@ export const useNativeSpeechRecognition = (): NativeSpeechRecognitionHook => {
   const [isListening, setIsListening] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const isListeningRef = useRef(false);
+  
+  // Track the last finalized segment to prevent duplicates
+  const lastFinalizedRef = useRef('');
+  const pendingTextRef = useRef('');
 
-  // Native speech recognition is always "supported" on native platforms
   const isSupported = true;
 
   const startListening = useCallback(async (addLog?: (msg: string) => void) => {
@@ -27,9 +30,11 @@ export const useNativeSpeechRecognition = (): NativeSpeechRecognitionHook => {
     setError(null);
 
     try {
+      // Remove any existing listeners first to prevent duplicates
+      await SpeechRecognition.removeAllListeners();
+      
       log('[NATIVE] Checking speech recognition availability...');
       
-      // Check if speech recognition is available
       const available = await SpeechRecognition.available();
       log(`[NATIVE] Available: ${available.available}`);
       
@@ -38,7 +43,6 @@ export const useNativeSpeechRecognition = (): NativeSpeechRecognitionHook => {
         return;
       }
 
-      // Request permissions
       log('[NATIVE] Requesting permissions...');
       const permissionStatus = await SpeechRecognition.requestPermissions();
       log(`[NATIVE] Permission status: ${permissionStatus.speechRecognition}`);
@@ -48,25 +52,70 @@ export const useNativeSpeechRecognition = (): NativeSpeechRecognitionHook => {
         return;
       }
 
-      // Set up listener for partial results
+      // Reset tracking refs
+      lastFinalizedRef.current = '';
+      pendingTextRef.current = '';
+
       log('[NATIVE] Setting up listener...');
+      
+      // Listen for partial results - these are interim and will be refined
       await SpeechRecognition.addListener('partialResults', (data) => {
         if (data.matches && data.matches.length > 0) {
-          const text = data.matches[0];
-          log(`[NATIVE] Partial result: ${text.substring(0, 50)}...`);
+          const text = data.matches[0].trim();
+          
+          if (!text) return;
+          
+          log(`[NATIVE] Partial: "${text.substring(0, 30)}..."`);
+          
+          // Store as pending and show as interim only
+          pendingTextRef.current = text;
           setInterimTranscript(text);
         }
       });
 
-      // Start listening
+      // Listen for when recognition stops (end of utterance on Android)
+      await SpeechRecognition.addListener('listeningState', (state) => {
+        log(`[NATIVE] Listening state: ${JSON.stringify(state)}`);
+        
+        // When listening stops, finalize the pending text if we have any
+        if (state.status === 'stopped' && pendingTextRef.current) {
+          const newText = pendingTextRef.current;
+          
+          // Only add if it's different from what we last finalized
+          if (newText !== lastFinalizedRef.current) {
+            log(`[NATIVE] Finalizing: "${newText.substring(0, 30)}..."`);
+            lastFinalizedRef.current = newText;
+            
+            setTranscript(prev => {
+              const separator = prev ? ' ' : '';
+              return prev + separator + newText;
+            });
+            setInterimTranscript('');
+            pendingTextRef.current = '';
+          }
+          
+          // Auto-restart if we're still supposed to be listening
+          if (isListeningRef.current) {
+            log('[NATIVE] Auto-restarting recognition...');
+            SpeechRecognition.start({
+              language: 'en-US',
+              maxResults: 1,
+              partialResults: true,
+              popup: false,
+            }).catch(err => {
+              log(`[NATIVE] Restart error: ${err.message}`);
+            });
+          }
+        }
+      });
+
       log('[NATIVE] Starting speech recognition...');
       setIsListening(true);
       isListeningRef.current = true;
 
       await SpeechRecognition.start({
         language: 'en-US',
-        maxResults: 5,
-        prompt: 'Speak now...',
+        maxResults: 1,
         partialResults: true,
         popup: false,
       });
@@ -83,33 +132,35 @@ export const useNativeSpeechRecognition = (): NativeSpeechRecognitionHook => {
   }, []);
 
   const stopListening = useCallback(async () => {
+    isListeningRef.current = false;
+    
     try {
       await SpeechRecognition.stop();
-      
-      // Get the final results
-      const results = await SpeechRecognition.getSupportedLanguages();
       console.log('[NATIVE] Stopped listening');
       
-      // Move interim to final transcript
-      if (interimTranscript) {
-        setTranscript(prev => prev + (prev ? ' ' : '') + interimTranscript);
-        setInterimTranscript('');
+      // Finalize any pending text
+      if (pendingTextRef.current && pendingTextRef.current !== lastFinalizedRef.current) {
+        const finalText = pendingTextRef.current;
+        setTranscript(prev => prev + (prev ? ' ' : '') + finalText);
       }
       
-      // Remove listeners
+      setInterimTranscript('');
+      pendingTextRef.current = '';
+      
       await SpeechRecognition.removeAllListeners();
       
     } catch (err) {
       console.error('[NATIVE] Error stopping:', err);
     } finally {
       setIsListening(false);
-      isListeningRef.current = false;
     }
-  }, [interimTranscript]);
+  }, []);
 
   const resetTranscript = useCallback(() => {
     setTranscript('');
     setInterimTranscript('');
+    lastFinalizedRef.current = '';
+    pendingTextRef.current = '';
   }, []);
 
   return {
