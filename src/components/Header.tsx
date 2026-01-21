@@ -1,14 +1,13 @@
 import logoImg from '@/assets/logo.jpg';
-import { Menu, Cpu } from 'lucide-react';
+import { Menu, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useModelSettings } from '@/hooks/useModelSettings';
 
 interface HeaderProps {
   onMenuClick: () => void;
 }
 
 export const Header = ({ onMenuClick }: HeaderProps) => {
-  const { selectedModel } = useModelSettings();
+  const hasApiKey = !!import.meta.env.VITE_GEMINI_API_KEY;
 
   return (
     <header className="sticky top-0 z-50 glass-effect border-b border-border">
@@ -35,13 +34,13 @@ export const Header = ({ onMenuClick }: HeaderProps) => {
         </div>
 
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-secondary border border-border">
-            <Cpu className="h-4 w-4 text-primary" />
+          <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border ${hasApiKey ? 'bg-green-500/10 border-green-500/30' : 'bg-secondary border-border'}`}>
+            <Sparkles className={`h-4 w-4 ${hasApiKey ? 'text-green-500' : 'text-primary'}`} />
             <span className="text-sm font-medium text-secondary-foreground hidden sm:inline">
-              AI Powered – {selectedModel.name}
+              {hasApiKey ? 'Gemini Flash' : 'AI Ready'}
             </span>
             <span className="text-sm font-medium text-secondary-foreground sm:hidden">
-              {selectedModel.name}
+              {hasApiKey ? 'AI' : '–'}
             </span>
           </div>
         </div>

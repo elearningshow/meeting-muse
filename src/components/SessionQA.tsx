@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ChatMessage } from '@/types/meeting';
 import { cn } from '@/lib/utils';
+import { askQuestionWithGemini } from '@/services/geminiService';
 
 interface SessionQAProps {
   transcript: string;
@@ -25,22 +26,22 @@ export const SessionQA = ({ transcript, isOpen, onClose }: SessionQAProps) => {
   }, [messages]);
 
   const generateResponse = async (question: string): Promise<string> => {
-    // Simulated AI response based on transcript
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    const transcriptWords = transcript.toLowerCase().split(' ');
-    const questionWords = question.toLowerCase().split(' ');
-    
-    // Find relevant content from transcript
-    const relevantTopics = questionWords.filter(word => 
-      word.length > 3 && transcriptWords.includes(word)
-    );
+    // Build conversation history for context
+    const history = messages.map(msg => ({
+      role: msg.role,
+      content: msg.content
+    }));
 
-    if (relevantTopics.length > 0) {
-      return `Based on the meeting transcript, I found relevant discussion about "${relevantTopics.join(', ')}". The meeting covered several key points related to your question. The participants discussed various aspects that may help address your inquiry. Would you like me to elaborate on any specific aspect?`;
+    try {
+      const response = await askQuestionWithGemini(transcript, question, history);
+      return response;
+    } catch (error) {
+      console.error('Q&A error:', error);
+      if (error instanceof Error && error.message.includes('GEMINI_API_KEY')) {
+        return 'Gemini API key is not configured. Please add your API key in the project settings to enable AI-powered Q&A.';
+      }
+      throw error;
     }
-
-    return `I've reviewed the meeting transcript but couldn't find specific information directly related to your question. The meeting primarily covered topics around: "${transcript.slice(0, 100)}...". Could you rephrase your question or ask about something discussed in the meeting?`;
   };
 
   const handleSend = async () => {
